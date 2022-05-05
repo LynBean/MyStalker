@@ -28,24 +28,28 @@ class _PlacesOfBirth :
         pass
     
     def Response () :
-        
-        PlacesCodeList = []
-        PlacesNameList = []
-        
-        Session = requests.Session()
-        
-        PlacesHTML = Session.get("https://sapsnkra.moe.gov.my/ibubapa2/indexv2.php", verify = False)
-        
-        Locater = BeautifulSoup(PlacesHTML.text, "lxml")
-        
-        for Options in Locater.find_all("option") :
+        while True :
+            try :
+                PlacesCodeList = []
+                PlacesNameList = []
+                
+                Session = requests.Session()
+                
+                PlacesHTML = Session.get("https://sapsnkra.moe.gov.my/ibubapa2/indexv2.php", verify = False)
+                
+                Locater = BeautifulSoup(PlacesHTML.text, "lxml")
+                
+                for Options in Locater.find_all("option") :
+                    
+                    if Options["value"] != "" :
+                        PlacesCodeList.append(Options["value"])
+                    if Options.text not in ("-PILIH NEGERI-", "-PILIH DAERAH-", "-PILIH SEKOLAH-") :
+                        PlacesNameList.append(Options.text)
+                
+                return (PlacesCodeList, PlacesNameList)
             
-            if Options["value"] != "" :
-                PlacesCodeList.append(Options["value"])
-            if Options.text not in ("-PILIH NEGERI-", "-PILIH DAERAH-", "-PILIH SEKOLAH-") :
-                PlacesNameList.append(Options.text)
-        
-        return (PlacesCodeList, PlacesNameList)
+            except requests.exceptions.ReadTimeout :
+                continue
 
     def ResponseFromGivenAreaCode(UserInputAreaCode) :
         Data = _Get.RetrieveData()
@@ -75,24 +79,28 @@ class _Areas :
         self.PlaceOfBirth = PlaceOfBirth
     
     def Response (self) :
-        
-        AreasCodeList = []
-        AreasNameList = []
-        
-        Session = requests.Session()
-        
-        AreasHTML = Session.get( f"https://sapsnkra.moe.gov.my/ajax/senarai_ppd.php?kodnegeri={self.PlaceOfBirth}", verify = False)
-        
-        Locater = BeautifulSoup(AreasHTML.text, "lxml")
-        
-        for Options in Locater.find_all("option"):
+        while True :
+            try :
+                AreasCodeList = []
+                AreasNameList = []
+                
+                Session = requests.Session()
+                
+                AreasHTML = Session.get( f"https://sapsnkra.moe.gov.my/ajax/senarai_ppd.php?kodnegeri={self.PlaceOfBirth}", verify = False)
+                
+                Locater = BeautifulSoup(AreasHTML.text, "lxml")
+                
+                for Options in Locater.find_all("option"):
+                    
+                    if Options["value"] != "" :
+                        AreasCodeList.append(Options["value"])
+                    if Options.text not in ("-PILIH PPD-") :
+                        AreasNameList.append(Options.text)
+                
+                return (AreasCodeList, AreasNameList)
             
-            if Options["value"] != "" :
-                AreasCodeList.append(Options["value"])
-            if Options.text not in ("-PILIH PPD-") :
-                AreasNameList.append(Options.text)
-        
-        return (AreasCodeList, AreasNameList)
+            except requests.exceptions.ReadTimeout :
+                continue
     
     def ResponseFromGivenSchoolCode(UserInputSchoolCode) :
         Data = _Get.RetrieveData()
@@ -112,23 +120,27 @@ class _Schools :
         self.AreaCode = AreaCode
         
     def Response (self) :
-        
-        SchoolsCodeList = []
-        SchoolsNameList = []
-        Session = requests.Session()
-        
-        school_html = Session.get( f"https://sapsnkra.moe.gov.my/ajax/ddl_senarai_sekolah.php?kodnegeri={self.PlaceOfBirthCode}&kodppd={self.AreaCode}", verify = False)
-        
-        Locater = BeautifulSoup(school_html.text, "lxml")
-        
-        for Options in Locater.find_all("option"):
+        while True :
+            try :
+                SchoolsCodeList = []
+                SchoolsNameList = []
+                Session = requests.Session()
+                
+                school_html = Session.get( f"https://sapsnkra.moe.gov.my/ajax/ddl_senarai_sekolah.php?kodnegeri={self.PlaceOfBirthCode}&kodppd={self.AreaCode}", verify = False)
+                
+                Locater = BeautifulSoup(school_html.text, "lxml")
+                
+                for Options in Locater.find_all("option"):
+                    
+                    if Options["value"] != "" :
+                        SchoolsCodeList.append(Options["value"])
+                    if Options.text not in ("-PILIH SEKOLAH-") :
+                        SchoolsNameList.append(Options.text)
+                
+                return (SchoolsCodeList, SchoolsNameList)
             
-            if Options["value"] != "" :
-                SchoolsCodeList.append(Options["value"])
-            if Options.text not in ("-PILIH SEKOLAH-") :
-                SchoolsNameList.append(Options.text)
-        
-        return (SchoolsCodeList, SchoolsNameList)
+            except requests.exceptions.ReadTimeout :
+                continue
 
 
 class _Get :
@@ -140,10 +152,7 @@ class _Get :
             PlaceOfBirthCode = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
             AreaCode = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
             
-            if PlaceOfBirthCode != None and AreaCode != None :
-                self.SchoolsList = _Schools(PlaceOfBirthCode, AreaCode).Response()
-            else :
-                raise Exception("PlaceOfBirthCode and AreaCode should not be None")
+            self.SchoolsList = _Schools(PlaceOfBirthCode, AreaCode).Response()
         
     def Response (self, BirthDate, PlaceOfBirth, FourDigitsNumber) :
         while True :
@@ -156,10 +165,12 @@ class _Get :
                         Response = Session.get( f"https://sapsnkra.moe.gov.my/ajax/papar_carian.php?nokp={BirthDate}{PlaceOfBirth}{FourDigitsNumber}", verify = False)
                         
                         if ("Tidak Wujud" not in Response.text) : 
-                            return str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}")
+                            IdentityCode = str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}")
+                            return [True, IdentityCode]
                             
                         elif ("Tidak Wujud" in Response.text) :
-                            return str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}\tNot Existing")
+                            IdentityCode = str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}")
+                            return [False, IdentityCode]
                     
                     
                     elif self.SchoolCode != None : # If user provided School Code
@@ -172,22 +183,45 @@ class _Get :
                             Locater = BeautifulSoup(SchoolsNameHTML.text, "lxml")
                             StudentName = ((Locater.find(lambda t: t.text.strip() == "NAMA MURID")).find_next("td")).find_next("td")
                             
-                            return str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}\t{self.SchoolCode}\t{self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)]}\t{StudentName.text}")
+                            Places = _PlacesOfBirth.Response()
+                            PlaceCodeReturn = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
+                            PlaceNameReturn = Places[1][Places[0].index(PlaceCodeReturn)]
+                            Areas = _Areas(PlaceCodeReturn).Response()
+                            AreaCodeReturn = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
+                            AreaNameReturn = Areas[1][Areas[0].index(AreaCodeReturn)]
+                            SchoolCodeReturn = self.SchoolCode
+                            SchoolNameReturn = self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)]
+                            IdentityCode =  f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}"
+                            StudentNameReturn = StudentName.text
+                            
+                            return [True, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
                             
                         elif ("Tidak Wujud" in Response.text) :
-                            return str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}\t{self.SchoolCode}\t{self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)]}\tNot Existing")
+                            
+                            Places = _PlacesOfBirth.Response()
+                            PlaceCodeReturn = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
+                            PlaceNameReturn = Places[1][Places[0].index(PlaceCodeReturn)]
+                            Areas = _Areas(PlaceCodeReturn).Response()
+                            AreaCodeReturn = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
+                            AreaNameReturn = Areas[1][Areas[0].index(AreaCodeReturn)]
+                            SchoolCodeReturn = str (self.SchoolCode)
+                            SchoolNameReturn = str (self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)])
+                            IdentityCode = str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}")
+                            
+                            return [False, IdentityCode, SchoolCodeReturn, SchoolNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
                         
                 return None
-            except :
+            
+            except requests.exceptions.ReadTimeout :
                 continue
     
     def FourDigitsNumber(i, Gender) :
-        if Gender in ("MALE", "FEMALE") :
-            if Gender == "MALE" :
+        if Gender in ("MALE", "FEMALE", "M", "F") :
+            if Gender in ("MALE", "M") :
                 if i%2 != 0 or i == 0 :
                     return f'{i:04}'
         
-            elif Gender == "FEMALE" :
+            elif Gender in ("FEMALE", "F") :
                 if i%2 == 0 or i == 0 :
                     return f'{i:04}'
                 
@@ -198,11 +232,6 @@ class _Get :
         
     def RetrieveData() :
         
-        try :
-            open("Database.json", "r", encoding = "utf-8")
-        except :
-            open("Database.json", "w+", encoding = "utf-8")
-            
         if ( datetime.utcfromtimestamp(os.path.getmtime("Database.json")) >= datetime.utcnow() - timedelta(days = 1) ) : # If last file modified time not more than 1 day
             if os.stat("Database.json").st_size != 0 : # If the file is not empty
                 with open("Database.json", "r", encoding = "utf-8") as f :
@@ -243,6 +272,14 @@ class _Get :
                         return True
 
         return False
+
+
+try:
+    with open ("Database.json", "r", encoding = "utf8") as f:
+        pass
+except FileNotFoundError :
+    with open ("Database.json", "w+", encoding = "utf8") as f:
+        pass
 
 
 if __name__ == "__main__" : # A program to get All the Code Listing including Places of Birth Code, Area Code, School Code that available
