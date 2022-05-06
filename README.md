@@ -1,7 +1,7 @@
 
 Malaysian Identity Scraper
 =================
-[![LICENSE](https://img.shields.io/badge/LICENSE-GPL--3.0-orange)](https://github.com/victoryy2003/Malaysian-Identity-Scraper/blob/main/LICENSE) [![PythonVersion](https://img.shields.io/badge/Python-3.10-blue)](https://www.python.org/downloads/)
+[![PythonVersion](https://img.shields.io/pypi/pyversions/MYScraper?label=Python)](https://www.python.org/downloads/) ![Format](https://img.shields.io/pypi/format/myscraper?label=Format) [![PyPI](https://img.shields.io/pypi/v/MYSCRAPER?label=PyPI)](https://pypi.org/project/MYScraper/) [![LICENSE](https://img.shields.io/github/license/victoryy2003/Malaysian-Identity-Scraper?label=LICENSE)](https://github.com/victoryy2003/Malaysian-Identity-Scraper/blob/main/LICENSE) 
 
 `MYScraper` is a command-line application written in Python that scrapes users identity including his/her Identity Numbers, Full name, Place of birth / Area / District of the user. 
 
@@ -10,6 +10,9 @@ Malaysian Identity Scraper
 
 Install
 -------
+
+**Only for Python version >= 3.10**
+
 To install MYScraper :
 ```bash
 $ pip install MYScraper
