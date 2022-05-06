@@ -3,7 +3,9 @@ Malaysian Identity Scraper
 =================
 [![LICENSE](https://img.shields.io/badge/LICENSE-GPL--3.0-orange)](https://github.com/victoryy2003/Malaysian-Identity-Scraper/blob/main/LICENSE) [![PythonVersion](https://img.shields.io/badge/Python-3.10-blue)](https://www.python.org/downloads/)
 
-`MYScraper` is a command-line application written in Python that scrapes users identity including his/her Identity Numbers, Full name, Place of birth / Area / District of the user. Use responsibly.
+`MYScraper` is a command-line application written in Python that scrapes users identity including his/her Identity Numbers, Full name, Place of birth / Area / District of the user. 
+
+*Use responsibly. For Educational Purposes Only*
 
 
 Install
