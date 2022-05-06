@@ -9,7 +9,7 @@ with open("README.md", "r") as README :
 
 setup(
     name = "MYScraper",
-    version = "2.0.0",
+    version = "2.0.1",
     description = "Scrap user Identity by spamming requests to a government website",
     author = "Asuna",
     author_email = "2003victoryy@1utar.my",
@@ -23,7 +23,8 @@ setup(
         "DateTime",
         "requests",
         "urllib3",
-        "bs4"
+        "bs4",
+        "lxml"
         ],
     entry_points = {
         "console_scripts": ["MYScraper = src.__main__:main"],
