@@ -1,6 +1,6 @@
 # Purpose : For Educational Purposes Only
 # Programmer : Asuna
-# Version : 2.0.0
+# Version : 2.0.2
 
 import os
 import sys
@@ -301,49 +301,47 @@ def main() :
     if not _Get.VerifyCode(UserInputPlaceCode) : # If PlaceOfBirth Code entered by user is invalid
         
         if _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is valid
-            Places = _PlacesOfBirth.Response() # return (PlacesCodeList, PlacesNameList)
-            for PlaceCode in Places[0] :
                 
-                for i in range(0, 10000) : 
-                    if Output :
-                        ClearScreen()
-                        print ("\tGot'cha ------------\n")
+            PlaceCode = _PlacesOfBirth.ResponseFromGivenSchoolCode(UserInputSchoolCode)
+            for i in range(0, 10000) : 
+                if Output :
+                    ClearScreen()
+                    print ("\tGot'cha ------------\n")
+                    
+                    if not ExistingList :
+                        print ("\tEmpty~~ :(\n")
                         
-                        if not ExistingList :
-                            print ("\tEmpty~~ :(\n")
-                            
-                        for Existing in ExistingList :
-                            print ( f"\t{Existing}\n")
-                            
-                        print ("\t" + "-"*20, "\n")
-                        Output = False
-                    
-                    FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
-                    if FourDigitsNumber == None :
-                        continue
-                    
-                    InitResponse = _Get()
-                    Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
-                        # Response return [Bool, IdentityCode]
-                    
-                    ProgressionPlaces = [Places[0].index(PlaceCode), len(Places[0])]
-                    Progression = (i / 10000) * 100
-                    print (" "*130, end = "\r") # Clear Last Line
-                    print ( f"Current Progress ({ProgressionPlaces[0]}/{ProgressionPlaces[1]})({Progression:.1f}%) : {Response[1]}\t{UserInputSchoolCode}", end = "\r")
-                    
-                    if not Response[0] : 
-                        continue
-                                    
-                    InitResponseWithSchool = _Get(SchoolCode = UserInputSchoolCode)
-                    ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
-                        # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
+                    for Existing in ExistingList :
+                        print ( f"\t{Existing}\n")
                         
-                    if not ResponseWithSchool[0] : 
-                        continue
+                    print ("\t" + "-"*20, "\n")
+                    Output = False
+                
+                FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
+                if FourDigitsNumber == None :
+                    continue
+                
+                InitResponse = _Get()
+                Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
+                    # Response return [Bool, IdentityCode]
+                
+                Progression = (i / 10000) * 100
+                print (" "*130, end = "\r") # Clear Last Line
+                print ( f"Current Progress ({Progression:.1f}%) : {Response[1]}\t{UserInputSchoolCode}", end = "\r")
+                
+                if not Response[0] : 
+                    continue
+                                
+                InitResponseWithSchool = _Get(SchoolCode = UserInputSchoolCode)
+                ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
+                    # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
                     
-                    FileDumpWithSchools(ResponseWithSchool)
-                    ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
-                    Output = True
+                if not ResponseWithSchool[0] : 
+                    continue
+                
+                FileDumpWithSchools(ResponseWithSchool)
+                ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
+                Output = True
                             
         if not _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is invalid
             Places = _PlacesOfBirth.Response() # return (PlacesCodeList, PlacesNameList)

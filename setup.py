@@ -9,7 +9,7 @@ with open("README.md", "r") as README :
 
 setup(
     name = "MYScraper",
-    version = "2.0.1",
+    version = "2.0.2",
     description = "Scrap user Identity by spamming requests to a government website",
     author = "Asuna",
     author_email = "2003victoryy@1utar.my",
