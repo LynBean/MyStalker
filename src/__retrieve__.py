@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import json
 import platform
 import requests
@@ -48,34 +49,55 @@ class _PlacesOfBirth :
                 
                 return (PlacesCodeList, PlacesNameList)
             
-            except requests.exceptions.ReadTimeout :
+            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
                 continue
             
-    def GetPlaceName (PlaceCode) :
-        Places = _PlacesOfBirth.Response()
-        
-        return Places[1][Places[0].index(PlaceCode)]
-
-    def ResponseFromGivenAreaCode(UserInputAreaCode) :
-        Data = _Get.RetrieveData()
-        
-        for PlaceCode in Data :
-            for AreaCode in Data[PlaceCode] :
-                if UserInputAreaCode == AreaCode :
-                    return PlaceCode
-                
-        return None
+    def RetrievePlaceFromDatabase (PlaceCode = None, AreaCode = None, SchoolCode = None) :
+        if all(Para is None for Para in {PlaceCode, AreaCode, SchoolCode}) :
+            raise ValueError("Expected either PlaceCode, AreaCode or SchoolCode")
     
-    def ResponseFromGivenSchoolCode(UserInputSchoolCode) :
-        Data = _Get.RetrieveData()
+        Data = _Get.RetrieveData() 
+        ReturnCode = []
+        ReturnName = []
         
-        for PlaceCode in Data :
-            for AreaCode in Data[PlaceCode] :
-                for SchoolCode in Data[PlaceCode][AreaCode] :
-                    if UserInputSchoolCode == SchoolCode :
-                        return PlaceCode
-                    
-        return None
+        try :
+            
+            if PlaceCode is not None :
+                Index = list( Data["Code"] ).index(PlaceCode)
+                ReturnsCode.append(PlaceCode)
+                ReturnsName.append(list(Data["Name"])[CodeIndex])
+            
+            if AreaCode is not None :
+                for _PlaceCode in Data["Code"] :
+                    if AreaCode in list( Data["Code"][_PlaceCode] ) :
+                        Index = list( Data["Code"] ).index(_PlaceCode)
+                        ReturnCode.append(_PlaceCode)
+                        ReturnName.append( list(Data["Name"])[Index] )
+                        break
+                
+            if SchoolCode is not None :
+                for _PlaceCode in Data["Code"] :
+                    for _AreaCode in Data["Code"][_PlaceCode] :
+                        if SchoolCode in list( Data["Code"][_PlaceCode][_AreaCode] ) :
+                            Index = list( Data["Code"] ).index(_PlaceCode)
+                            ReturnCode.append(_PlaceCode)
+                            ReturnName.append( list(Data["Name"])[Index] )
+                            break
+                    else :
+                        continue
+                    break
+                        
+            AllSameCode = all(Code == ReturnCode[0] for Code in ReturnCode)
+            AllSameName = all(Name == ReturnName[0] for Name in ReturnName)
+            
+            if AllSameCode and AllSameName :
+                return [ReturnCode[0], ReturnName[0]]
+            
+            else :
+                raise ValueError
+                       
+        except (KeyError, ValueError) :
+            raise Exception("You might had input the code outside of our database, if the error is still occuring, you can remove the <Database.json> file and try again.")
 
 
 class _Areas :
@@ -104,24 +126,53 @@ class _Areas :
                 
                 return (AreasCodeList, AreasNameList)
             
-            except requests.exceptions.ReadTimeout :
+            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
                 continue
             
-    def GetAreaName (self, AreaCode) :
-        Areas = _Areas(self.PlaceOfBirthCode).Response()
+    def RetrieveAreaFromDatabase (AreaCode = None, SchoolCode = None) :
+        if all(Para is None for Para in {AreaCode, SchoolCode}) :
+            raise ValueError("Expected either AreaCode or SchoolCode")
+            
+        Data = _Get.RetrieveData() 
+        ReturnCode = []
+        ReturnName = [] 
         
-        return Areas[1][Areas[0].index(AreaCode)]
-    
-    def ResponseFromGivenSchoolCode(UserInputSchoolCode) :
-        Data = _Get.RetrieveData()
-        
-        for PlaceCode in Data :
-            for AreaCode in Data[PlaceCode] :
-                for SchoolCode in Data[PlaceCode][AreaCode] :
-                    if UserInputSchoolCode == SchoolCode :
-                        return AreaCode
-                    
-        return None
+        try :
+            
+            if AreaCode is not None :
+                for _PlaceCode in Data["Code"] :
+                    if AreaCode in list( Data["Code"][_PlaceCode] ) :
+                        Index = list( Data["Code"][_PlaceCode] ).index(AreaCode)
+                        ReturnCode.append(AreaCode)
+                        PlaceName = _PlacesOfBirth.RetrievePlaceFromDatabase(AreaCode = AreaCode)[1]
+                        ReturnName.append( list( Data["Name"][PlaceName] )[Index] )
+                        break
+                
+            if SchoolCode is not None :
+                for _PlaceCode in Data["Code"] :
+                    for _AreaCode in Data["Code"][_PlaceCode] :
+                        if SchoolCode in list( Data["Code"][_PlaceCode][_AreaCode] ) :
+                            Index = list( Data["Code"][_PlaceCode] ).index(_AreaCode)
+                            ReturnCode.append(_AreaCode)
+                            PlaceName = _PlacesOfBirth.RetrievePlaceFromDatabase(SchoolCode = SchoolCode)[1]
+                            ReturnName.append( list( Data["Name"][PlaceName] )[Index] )
+                            break
+                    else :
+                        continue
+                    break
+                        
+            AllSameCode = all(Code == ReturnCode[0] for Code in ReturnCode)
+            AllSameName = all(Name == ReturnName[0] for Name in ReturnName)
+            
+            if AllSameCode and AllSameName :
+                return [ReturnCode[0], ReturnName[0]]
+            
+            else :
+                raise ValueError
+                       
+        except (KeyError, ValueError) :
+            raise Exception("You might had input the code outside of our database, if the error is still occuring, you can remove the <Database.json> file and try again.")
+
 
 class _Schools :
     
@@ -149,25 +200,37 @@ class _Schools :
                 
                 return (SchoolsCodeList, SchoolsNameList)
             
-            except requests.exceptions.ReadTimeout :
+            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
                 continue
 
-    def GetSchoolName (self, SchoolCode) :
-        Schools = _Schools(self.PlaceOfBirthCode, self.AreaCode).Response()
+    def RetrieveSchoolFromDatabase (SchoolCode) :
+        Data = _Get.RetrieveData() 
         
-        return Schools[1][Schools[0].index(SchoolCode)]
+        try :
+                
+            for _PlaceCode in Data["Code"] :
+                for _AreaCode in Data["Code"][_PlaceCode] :
+                    if SchoolCode in list( Data["Code"][_PlaceCode][_AreaCode] ) :
+                        Index = list( Data["Code"][_PlaceCode][_AreaCode] ).index(SchoolCode)
+                        ReturnCode = SchoolCode
+                        PlaceName = _PlacesOfBirth.RetrievePlaceFromDatabase(SchoolCode = SchoolCode)[1]
+                        AreaName = _Areas.RetrieveAreaFromDatabase(SchoolCode = SchoolCode)[1]
+                        ReturnName = list( Data["Name"][PlaceName][AreaName] )[Index]
+                        
+                        return [ReturnCode, ReturnName]
+                    
+            else :
+                raise ValueError
+                       
+        except (KeyError, ValueError) as e :
+            
+            raise Exception( f"{e}\nYou might had input the code outside of our database, if the error is still occuring, you can remove the <Database.json> file and try again.")
         
 
 class _Get :
     
     def __init__(self, SchoolCode = None) :
         self.SchoolCode = SchoolCode
-        
-        if self.SchoolCode != None :
-            PlaceOfBirthCode = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
-            AreaCode = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
-            
-            self.SchoolsList = _Schools(PlaceOfBirthCode, AreaCode).Response()
         
     def Response (self, BirthDate, PlaceOfBirth, FourDigitsNumber) :
         while True :
@@ -198,14 +261,15 @@ class _Get :
                             Locater = BeautifulSoup(SchoolsNameHTML.text, "lxml")
                             StudentName = ((Locater.find(lambda t: t.text.strip() == "NAMA MURID")).find_next("td")).find_next("td")
                             
-                            Places = _PlacesOfBirth.Response()
-                            PlaceCodeReturn = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
-                            PlaceNameReturn = Places[1][Places[0].index(PlaceCodeReturn)]
-                            Areas = _Areas(PlaceCodeReturn).Response()
-                            AreaCodeReturn = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
-                            AreaNameReturn = Areas[1][Areas[0].index(AreaCodeReturn)]
-                            SchoolCodeReturn = self.SchoolCode
-                            SchoolNameReturn = self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)]
+                            Place = _PlacesOfBirth.RetrievePlaceFromDatabase(SchoolCode = self.SchoolCode)
+                            PlaceCodeReturn = Place[0]
+                            PlaceNameReturn = Place[1]
+                            Area = _Areas.RetrieveAreaFromDatabase(SchoolCode = self.SchoolCode)
+                            AreaCodeReturn = Area[0]
+                            AreaNameReturn = Area[1]
+                            School = _Schools.RetrieveSchoolFromDatabase(SchoolCode = self.SchoolCode)
+                            SchoolCodeReturn = School[0]
+                            SchoolNameReturn = School[1]
                             IdentityCode =  f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}"
                             StudentNameReturn = StudentName.text
                             
@@ -213,21 +277,22 @@ class _Get :
                             
                         elif ("Tidak Wujud" in Response.text) :
                             
-                            Places = _PlacesOfBirth.Response()
-                            PlaceCodeReturn = _PlacesOfBirth.ResponseFromGivenSchoolCode(self.SchoolCode)
-                            PlaceNameReturn = Places[1][Places[0].index(PlaceCodeReturn)]
-                            Areas = _Areas(PlaceCodeReturn).Response()
-                            AreaCodeReturn = _Areas.ResponseFromGivenSchoolCode(self.SchoolCode)
-                            AreaNameReturn = Areas[1][Areas[0].index(AreaCodeReturn)]
-                            SchoolCodeReturn = str (self.SchoolCode)
-                            SchoolNameReturn = str (self.SchoolsList[1][self.SchoolsList[0].index(self.SchoolCode)])
+                            Place = _PlacesOfBirth.RetrievePlaceFromDatabase(SchoolCode = self.SchoolCode)
+                            PlaceCodeReturn = Place[0]
+                            PlaceNameReturn = Place[1]
+                            Area = _Areas.RetrieveAreaFromDatabase(SchoolCode = self.SchoolCode)
+                            AreaCodeReturn = Area[0]
+                            AreaNameReturn = Area[1]
+                            School = _Schools.RetrieveSchoolFromDatabase(SchoolCode = self.SchoolCode)
+                            SchoolCodeReturn = School[0]
+                            SchoolNameReturn = School[1]
                             IdentityCode = str ( f"{BirthDate}{PlaceOfBirth}{FourDigitsNumber}")
                             
                             return [False, IdentityCode, SchoolCodeReturn, SchoolNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
                         
                 return None
             
-            except requests.exceptions.ReadTimeout :
+            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
                 continue
     
     def FourDigitsNumber(i, Gender) :
@@ -246,56 +311,62 @@ class _Get :
             return f'{i:04}'
         
     def RetrieveData() :
-        
         if ( datetime.utcfromtimestamp(os.path.getmtime("Database.json")) >= datetime.utcnow() - timedelta(days = 1) ) : # If last file modified time not more than 1 day
             if os.stat("Database.json").st_size != 0 : # If the file is not empty
                 with open("Database.json", "r", encoding = "utf-8") as f :
                     return json.load(f)
             
         Data = {}
-        Places = _PlacesOfBirth.Response()
-            
-        for PlaceCode in Places[0] :
-            Data[PlaceCode] = {}
-            Areas = _Areas(PlaceCode).Response()
-            
-            for AreaCode in Areas[0] :
-                Data[PlaceCode][AreaCode] = []
-                Schools = _Schools(PlaceCode, AreaCode).Response()
-                
-                for SchoolCode in Schools[0] :
-                    Data[PlaceCode][AreaCode].append(SchoolCode)
+        Data["Code"] = {}
+        Data["Name"] = {}
         
+        Places = _PlacesOfBirth.Response()
+        for PlaceCode, PlaceName in zip(Places[0], Places[1]) :
+            Data["Code"][PlaceCode] = {}
+            Data["Name"][PlaceName] = {}
+            
+            Areas = _Areas(PlaceCode).Response()
+            for AreaCode, AreaName in zip(Areas[0], Areas[1]) :
+                Data["Code"][PlaceCode][AreaCode] = []
+                Data["Name"][PlaceName][AreaName] = []
+                
+                Schools = _Schools(PlaceCode, AreaCode).Response()
+                for SchoolCode, SchoolName in zip(Schools[0], Schools[1]) :
+                    Data["Code"][PlaceCode][AreaCode].append(SchoolCode)
+                    Data["Name"][PlaceName][AreaName].append(SchoolName)        
+                    
         with open ("Database.json", "w", encoding = "utf-8") as f :
-            json.dump(Data, f, indent = 4, ensure_ascii = False, sort_keys = True)
+            json.dump(Data, f, indent = 4, ensure_ascii = False, sort_keys = False)
 
         return Data
     
     def VerifyCode(Code) :
         Data = _Get.RetrieveData()
         
-        for PlaceCode in Data :
+        for PlaceCode in Data["Code"] :
             if Code == PlaceCode :
                 return True
             
-            for AreaCode in Data[PlaceCode] :
+            for AreaCode in Data["Code"][PlaceCode] :
                 if Code == AreaCode :
                     return True
                 
-                for SchoolCode in Data[PlaceCode][AreaCode] :
+                for SchoolCode in Data["Code"][PlaceCode][AreaCode] :
                     if Code == SchoolCode :
                         return True
 
         return False
 
 
-try:
-    with open ("Database.json", "r", encoding = "utf8") as f:
-        pass
-except FileNotFoundError :
-    with open ("Database.json", "w+", encoding = "utf8") as f:
-        pass
+def __init__ () :
+    try:
+        with open ("Database.json", "r", encoding = "utf8") as f:
+            pass
+    except FileNotFoundError :
+        with open ("Database.json", "w+", encoding = "utf8") as f:
+            pass
 
+__init__ ()
 
 if __name__ == "__main__" : # A program to get All the Code Listing including Places of Birth Code, Area Code, School Code that available
     

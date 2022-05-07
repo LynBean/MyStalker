@@ -9,13 +9,13 @@ with open("README.md", "r") as README :
 
 setup(
     name = "MYScraper",
-    version = "2.0.2",
+    version = "2.0.9",
     description = "Scrap user Identity by spamming requests to a government website",
     author = "Asuna",
     author_email = "2003victoryy@1utar.my",
     url = "https://github.com/victoryy2003/Malaysian-Identity-Scraper",
     license = "GPL-3.0",
-    packages = find_packages (exclude = ["tests"]),
+    packages = find_packages (exclude = ["test"]),
     zip_safe = False,
     python_requires = ">=3.10.0",
     install_requires = [
