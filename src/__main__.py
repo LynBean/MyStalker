@@ -1,6 +1,6 @@
 # Purpose : For Educational Purposes Only
 # Programmer : Asuna
-# Version : 2.0.9
+# Version : 2.1.0
 
 import os
 import sys
@@ -311,135 +311,160 @@ def main (_Option = 0, BD = None, PC = None, G = None, SC = None) :
             PlacesCode.insert(0, PlacesCode.pop( PlacesCode.index(PriorityPlaceCode )))
             
             for PlaceCode in PlacesCode :
-                for i in range(0, 10000) : 
-                    if Output :
-                        ClearScreen()
-                        print ("\tGot'cha ------------\n")
-                        
-                        if not ExistingList :
-                            print ("\tEmpty~~ :(\n")
+                try :
+                    for i in range(0, 10000) : 
+                        if Output :
+                            ClearScreen()
+                            print ("\tGot'cha ------------\n")
                             
-                        for Existing in ExistingList :
-                            print ( f"\t{Existing}\n")
+                            if not ExistingList :
+                                print ("\tEmpty~~ :(\n")
+                                
+                            for Existing in ExistingList :
+                                print ( f"\t{Existing}\n")
+                                
+                            print ("\t" + "-"*20, "\n")
                             
-                        print ("\t" + "-"*20, "\n")
-                        Output = False
-                    
-                    FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
-                    if FourDigitsNumber == None :
-                        continue
-                    
-                    InitResponse = _Get()
-                    Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
-                        # Response return [Bool, IdentityCode]
-                    
-                    ProgressionPlaces = [PlacesCode.index(PlaceCode), len(PlacesCode)]
-                    Progression = (i / 10000) * 100
-                    print (" "*130, end = "\r") # Clear Last Line
-                    print ( f"Current Progress ({ProgressionPlaces[0]}/{ProgressionPlaces[1]})({Progression:.1f}%) : {Response[1]}\t{UserInputSchoolCode}\t{SchoolName}", end = "\r")
-                    
-                    if not Response[0] : 
-                        continue
-                                    
-                    InitResponseWithSchool = _Get(SchoolCode = UserInputSchoolCode)
-                    ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
-                        # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
+                            print ("You may press <CTRL + C> to skip finding in this place")
+                            Output = False
                         
-                    if not ResponseWithSchool[0] : 
-                        continue
-                    
-                    FileDumpWithSchools(ResponseWithSchool)
-                    ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
+                        FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
+                        if FourDigitsNumber == None :
+                            continue
+                        
+                        InitResponse = _Get()
+                        Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
+                            # Response return [Bool, IdentityCode]
+                        
+                        ProgressionPlaces = [PlacesCode.index(PlaceCode), len(PlacesCode)]
+                        Progression = (i / 10000) * 100
+                        print (" "*130, end = "\r") # Clear Last Line
+                        print ( f"Current Progress ({ProgressionPlaces[0]}/{ProgressionPlaces[1]})({Progression:.1f}%) : {Response[1]}\t{UserInputSchoolCode}\t{SchoolName}", end = "\r")
+                        
+                        if not Response[0] : 
+                            continue
+                                        
+                        InitResponseWithSchool = _Get(SchoolCode = UserInputSchoolCode)
+                        ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
+                            # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
+                            
+                        if not ResponseWithSchool[0] : 
+                            continue
+                        
+                        FileDumpWithSchools(ResponseWithSchool)
+                        ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
+                        Output = True
+                        
+                except KeyboardInterrupt:
                     Output = True
+                    continue
                             
         if not _Get.VerifyCode(UserInputSchoolCode) : # If School Code entered by user is invalid
             Places = _PlacesOfBirth.Response() # return (PlacesCodeList, PlacesNameList)
             
             for PlaceCode in Places[0] :
-                Areas = _Areas(PlaceCode).Response() # return (AreasCodeList, AreasNameList)
-                
-                for i in range(0, 10000) : 
-                    if Output :
-                        ClearScreen()
-                        print ("\tGot'cha ------------\n")
-                        
-                        if not ExistingList :
-                            print ("\tEmpty~~ :(\n")
+                try :
+                    Areas = _Areas(PlaceCode).Response() # return (AreasCodeList, AreasNameList)
+                    
+                    for i in range(0, 10000) : 
+                        if Output :
+                            ClearScreen()
+                            print ("\tGot'cha ------------\n")
                             
-                        for Existing in ExistingList :
-                            print ( f"\t{Existing}\n")
+                            if not ExistingList :
+                                print ("\tEmpty~~ :(\n")
+                                
+                            for Existing in ExistingList :
+                                print ( f"\t{Existing}\n")
+                                
+                            print ("\t" + "-"*20, "\n")
                             
-                        print ("\t" + "-"*20, "\n")
-                        Output = False
-                    
-                    FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
-                    if FourDigitsNumber == None :
-                        continue
-                    
-                    InitResponse = _Get()
-                    Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
-                        # Response return [Bool, IdentityCode]
-                    
-                    if not Response[0] : 
+                            print ("You may press <CTRL + C> to skip finding in this place")
+                            Output = False
                         
-                        ProgressionPlaces = [Places[0].index(PlaceCode), len(Places[0])]
-                        Progression = (i / 10000) * 100
-                        print (" "*130, end = "\r") # Clear Last Line
-                        print ( f"Current Progress ({ProgressionPlaces[0]}/{ProgressionPlaces[1]})({Progression:.1f}%) : {Response[1]}", end = "\r")
-                        continue
+                        FourDigitsNumber = _Get.FourDigitsNumber(i, Gender)
+                        if FourDigitsNumber == None :
+                            continue
+                        
+                        InitResponse = _Get()
+                        Response = InitResponse.Response(BirthDate, PlaceCode, FourDigitsNumber) 
+                            # Response return [Bool, IdentityCode]
+                        
+                        if not Response[0] : 
+                            
+                            ProgressionPlaces = [Places[0].index(PlaceCode), len(Places[0])]
+                            Progression = (i / 10000) * 100
+                            print (" "*130, end = "\r") # Clear Last Line
+                            print ( f"Current Progress ({ProgressionPlaces[0]}/{ProgressionPlaces[1]})({Progression:.1f}%) : {Response[1]}", end = "\r")
+                            continue
 
-                    try :
-                        print (" "*130, end = "\r") # Clear Last Line
-                        print ( f"You may press <CTRL + C> to skip finding user {Response[1]}")
-                        time.sleep(5)
-                        
-                        for AreaCode in Areas[0] :
-                            Schools = _Schools(PlaceCode, AreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
+                        try :
+                            print (" "*130, end = "\r") # Clear Last Line
+                            print ( f"You may press <CTRL + C> to skip finding user {Response[1]}")
+                            time.sleep(5)
                             
-                            for SchoolCode in Schools[0] :
-                                if Output :
-                                    ClearScreen()
-                                    print ("\tGot'cha ------------\n")
-                                    
-                                    if not ExistingList :
-                                        print ("\tEmpty~~ :(\n")
-                                        
-                                    for Existing in ExistingList :
-                                        print ( f"\t{Existing}\n")
-                                        
-                                    print ("\t" + "-"*20, "\n")
-                                    
-                                    print ( f"You may press <CTRL + C> to skip finding user {Response[1]}")
-                                    Output = False
-                                    
-                                InitResponseWithSchool = _Get(SchoolCode = SchoolCode)
-                                ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
-                                    # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
-                                    
-                                ProgressionAreas = [Areas[0].index(AreaCode), len(Areas[0])]
-                                ProgressionSchools = (Schools[0].index(SchoolCode) / len(Schools[0])) * 100
-                                print (" "*130, end = "\r") # Clear Last Line
-                                print ( f"Current Progress ({ProgressionAreas[0]}/{ProgressionAreas[1]})({ProgressionSchools:.1f}%) : {ResponseWithSchool[1]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}", end = "\r")
+                            for AreaCode in Areas[0] :
+                                Schools = _Schools(PlaceCode, AreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
                                 
-                                if not ResponseWithSchool[0] : 
-                                    continue
-                                
-                                FileDumpWithSchools(ResponseWithSchool)
-                                ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
+                                for SchoolCode in Schools[0] :
+                                    if Output :
+                                        ClearScreen()
+                                        print ("\tGot'cha ------------\n")
+                                        
+                                        if not ExistingList :
+                                            print ("\tEmpty~~ :(\n")
+                                            
+                                        for Existing in ExistingList :
+                                            print ( f"\t{Existing}\n")
+                                            
+                                        print ("\t" + "-"*20, "\n")
+                                        
+                                        print ( f"You may press <CTRL + C> to skip finding user {Response[1]}")
+                                        Output = False
+                                        
+                                    InitResponseWithSchool = _Get(SchoolCode = SchoolCode)
+                                    ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, PlaceCode, FourDigitsNumber)
+                                        # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
+                                        
+                                    ProgressionAreas = [Areas[0].index(AreaCode), len(Areas[0])]
+                                    ProgressionSchools = (Schools[0].index(SchoolCode) / len(Schools[0])) * 100
+                                    print (" "*130, end = "\r") # Clear Last Line
+                                    print ( f"Current Progress ({ProgressionAreas[0]}/{ProgressionAreas[1]})({ProgressionSchools:.1f}%) : {ResponseWithSchool[1]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}", end = "\r")
+                                    
+                                    if not ResponseWithSchool[0] : 
+                                        continue
+                                    
+                                    FileDumpWithSchools(ResponseWithSchool)
+                                    ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
+                                    Output = True
+                                    
+                            else :
                                 Output = True
-                                
-                        else :
+                                    
+                        except KeyboardInterrupt:
                             Output = True
-                                
-                    except KeyboardInterrupt:
-                        Output = True
-                        continue
-                        
-
+                            continue
+                            
+                except KeyboardInterrupt:
+                    Output = True
+                    continue
+    
+    
+    ClearScreen()
+    print ("\tGot'cha ------------\n")
+    
+    if not ExistingList :
+        print ("\tEmpty~~ :(\n")
+        
+    for Existing in ExistingList :
+        print ( f"\t{Existing}\n")
+        
+    print ("\t" + "-"*20, "\n")
+    
     Quotes = [
-        "I will run as fast as I can to wherever my customer desires. I am the Auto Memories Doll, Violet Evergarden.\n-Violet Evergarden",
-        "Do I have any right after I killed so many people as a weapon? I must have prevented them from keeping promises of their own.\n-Violet Evergarden",
-        "Live and be free.\n-Gilbert Bougainvillea"
+        "I will run as fast as I can to wherever my customer desires. I am the Auto Memories Doll, Violet Evergarden.\n-Violet Evergarden\n\n",
+        "Do I have any right after I killed so many people as a weapon? I must have prevented them from keeping promises of their own.\n-Violet Evergarden\n\n",
+        "Live and be free.\n-Gilbert Bougainvillea\n\n"
     ]
 
     print (" "*130, end = "\r") # Clear Last Line

@@ -49,7 +49,7 @@ class _PlacesOfBirth :
                 
                 return (PlacesCodeList, PlacesNameList)
             
-            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
+            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
                 continue
             
     def RetrievePlaceFromDatabase (PlaceCode = None, AreaCode = None, SchoolCode = None) :
@@ -126,7 +126,7 @@ class _Areas :
                 
                 return (AreasCodeList, AreasNameList)
             
-            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
+            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
                 continue
             
     def RetrieveAreaFromDatabase (AreaCode = None, SchoolCode = None) :
@@ -200,7 +200,7 @@ class _Schools :
                 
                 return (SchoolsCodeList, SchoolsNameList)
             
-            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
+            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
                 continue
 
     def RetrieveSchoolFromDatabase (SchoolCode) :
@@ -292,7 +292,7 @@ class _Get :
                         
                 return None
             
-            except (requests.exceptions.ReadTimeout, ConnectTimeout) :
+            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
                 continue
     
     def FourDigitsNumber(i, Gender) :
