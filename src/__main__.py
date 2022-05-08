@@ -1,6 +1,6 @@
 # Purpose : For Educational Purposes Only
 # Programmer : Asuna
-# Version : 2.1.1
+# Version : 2.1.2
 
 import os
 import sys
@@ -114,52 +114,13 @@ def FileDumpWithSchools(Response) :
             
         json.dump (Data, JsonFile, indent = 4, ensure_ascii = False, sort_keys = False)
         
-
-def Option(_Option = 0, BD = None, PC = None, G = None, SC = None) : # New Switch-case function only for Python Version >= 3.10
-    ClearScreen()
-    global BirthDate, UserInputPlaceCode, Gender, UserInputSchoolCode, UserInputFourDigitsNumber
     
-    match _Option :
-        case 1 :
-            UserInputFourDigitsNumber = None
-            while True :
-                BirthDate = str ( input( "Please enter the birth date : (031231) "))
-                if ValidateDatetime(BirthDate) :
-                    break
-                
-            while True :
-                UserInputPlaceCode = str ( input( "Please enter the place of birth : (13)(If no just keep it blank) "))
-                if _Get.VerifyCode(UserInputPlaceCode) or UserInputPlaceCode in ("") :
-                    break
-                
-            while True :
-                Gender = str ( input( "Please enter the gender : (Female)(If no just keep it blank) ")).upper()
-                if Gender in ("MALE", "FEMALE", "M", "F", "") :
-                    break
-                
-            while True :
-                UserInputSchoolCode = str ( input( "Please enter the school code : (YCC4102)(If no just keep it blank) ")).upper()
-                if _Get.VerifyCode(UserInputSchoolCode) or UserInputSchoolCode in ("") :
-                    break
-                
-        case 2 :
-            IdentityCode = input( "Please enter the identity code : (010203040506) ")
-            BirthDate = str (IdentityCode[0:6])
-            UserInputPlaceCode = str (IdentityCode[6:8])
-            UserInputFourDigitsNumber = str (IdentityCode[8:12])
-                
-        case 3 : 
-            UserInputFourDigitsNumber = None
-            BirthDate = BD
-            UserInputPlaceCode = PC
-            Gender = G
-            UserInputSchoolCode = SC
-            
-        case default :
-            return
         
-        
-def main (_Option = 0, BD = None, PC = None, G = None, SC = None) :
+def main (Option = 0, BD = None, PC = None, G = None, SC = None) :
+    ClearScreen()
+    print ("\tGenerating Database ... Please wait for a while ...")
+    _Get.RetrieveData()
+    
     try :
         import win32con
         from win32 import win32gui
@@ -181,17 +142,73 @@ def main (_Option = 0, BD = None, PC = None, G = None, SC = None) :
             pass
 
     while True:
+        
         ClearScreen()
         print ( "\tOptions" )
         print ( "\t--------------------")
-        print ( "\t1. Provide Birth Date (Compulsary) , either Place Of Birth / Gender / School Code, \n\t\tand get the user details : Full name, Identity Number, Place Of Birth, School that study currently or before")
-        print ( "\t2. Provide user Identity number, and get the user Full name and user's school that study currently or before")
-        _Option = input("\n\tChoose : ")
-        if _Option in ("1", "2") :
-            _Option = int (_Option)
-            break
-
-    Option(_Option = _Option) # New Switch-case function only for Python Version >= 3.10
+        print ( "\t1. Provide Birth Date (Compulsary) , either Place Of Birth / Gender / School Code, \n\tand get the user details : Full name, Identity Number, Place Of Birth, School that study currently or before")
+        print ( "\n\t2. Provide user Identity number, and get the user Full name and user's school that study currently or before")
+        Option = input("\n\tChoose : ")
+        
+        global BirthDate, UserInputPlaceCode, Gender, UserInputSchoolCode, UserInputFourDigitsNumber
+        
+        match Option : # New Switch-case function only for Python Version >= 3.10
+            case "1" :
+                UserInputFourDigitsNumber = None
+                while True :
+                    BirthDate = str ( input( "\tPlease enter the birth date : (031231) "))
+                    if ValidateDatetime(BirthDate) :
+                        break
+                    
+                while True :
+                    UserInputPlaceCode = str ( input( "\tPlease enter the place of birth : (13)(If no just keep it blank) "))
+                    if _Get.VerifyCode(UserInputPlaceCode) or UserInputPlaceCode in ("") :
+                        break
+                    
+                while True :
+                    Gender = str ( input( "\tPlease enter the gender : (Female)(If no just keep it blank) ")).upper()
+                    if Gender in ("MALE", "FEMALE", "M", "F", "") :
+                        break
+                    
+                while True :
+                    UserInputSchoolCode = str ( input( "\tPlease enter the school code : (YCC4102)(If no just keep it blank) ")).upper()
+                    if _Get.VerifyCode(UserInputSchoolCode) or UserInputSchoolCode in ("") :
+                        break
+                break
+            
+            case "2" :
+                while True :
+                    
+                    IdentityCode = input( "\tPlease enter the identity code : (010203040506) ")
+                    if len (IdentityCode) > 12 or not (IdentityCode).isdecimal() :
+                        continue
+                    
+                    if not ValidateDatetime( IdentityCode[0:6] ) :
+                        continue
+                    BirthDate = IdentityCode[0:6]
+                    
+                    if not _Get.VerifyCode( IdentityCode[6:8]) :
+                        continue
+                    UserInputPlaceCode = IdentityCode[6:8]
+                    
+                    if int ( IdentityCode[8:12] ) not in range (10000) :
+                        continue
+                    UserInputFourDigitsNumber = IdentityCode[8:12]
+                    
+                    break
+                break
+                    
+            case "test" : 
+                UserInputFourDigitsNumber = None
+                BirthDate = BD
+                UserInputPlaceCode = PC
+                Gender = G
+                UserInputSchoolCode = SC
+                break
+            
+            case default :
+                continue
+                
     
     ExistingList = []
     Output = True
@@ -518,7 +535,7 @@ def main (_Option = 0, BD = None, PC = None, G = None, SC = None) :
     
     
     ClearScreen()
-    print ("\tGot'cha ------------\n")
+    print ( f"\tThe Following Results had been saved in the following path :\n\t{os.getcwd()}\HereYouGo.txt\n\t{os.getcwd()}\HereYouGo.json\n")
     
     if not ExistingList :
         print ("\tEmpty~~ :(\n")
@@ -534,7 +551,6 @@ def main (_Option = 0, BD = None, PC = None, G = None, SC = None) :
         "Live and be free.\n-Gilbert Bougainvillea\n\n"
     ]
 
-    print (" "*130, end = "\r") # Clear Last Line
     print ( random.choice (Quotes) )
 
 

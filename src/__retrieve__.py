@@ -49,7 +49,8 @@ class _PlacesOfBirth :
                 
                 return (PlacesCodeList, PlacesNameList)
             
-            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
+            except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, TimeoutError) :
+                time.sleep(5)
                 continue
             
     def RetrievePlaceFromDatabase (PlaceCode = None, AreaCode = None, SchoolCode = None) :
@@ -126,7 +127,8 @@ class _Areas :
                 
                 return (AreasCodeList, AreasNameList)
             
-            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
+            except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, TimeoutError) :
+                time.sleep(5)
                 continue
             
     def RetrieveAreaFromDatabase (AreaCode = None, SchoolCode = None) :
@@ -200,7 +202,8 @@ class _Schools :
                 
                 return (SchoolsCodeList, SchoolsNameList)
             
-            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
+            except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, TimeoutError) :
+                time.sleep(5)
                 continue
 
     def RetrieveSchoolFromDatabase (SchoolCode) :
@@ -292,7 +295,8 @@ class _Get :
                         
                 return None
             
-            except (requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError, TimeoutError) :
+            except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, TimeoutError) :
+                time.sleep(5)
                 continue
     
     def FourDigitsNumber(i, Gender) :
