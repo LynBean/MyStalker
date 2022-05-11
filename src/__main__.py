@@ -341,14 +341,12 @@ def main (Option = 0, BD = None, PC = None, G = None, SC = None) :
 
                 try :
                     print (" "*130, end = "\r") # Clear Last Line
-                    print ( f"You may press <CTRL + C> to skip finding user {Response[1]}", end = "\r")
-                    Output = True
+                    print ( f"You may press <CTRL + C> to skip finding user {Response[1]}")
                     time.sleep(5)
                     
-                    if _Get.VerifyCode(UserInputAreaCode) :
+                    for AreaCode in Areas[0] :
+                        Schools = _Schools(UserInputPlaceCode, AreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
                         
-                        Schools = _Schools(UserInputPlaceCode, UserInputAreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
-                            
                         for SchoolCode in Schools[0] :
                             if Output :
                                 ClearScreen()
@@ -380,54 +378,9 @@ def main (Option = 0, BD = None, PC = None, G = None, SC = None) :
                             FileDumpWithSchools(ResponseWithSchool)
                             ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
                             Output = True
-                                
-                        
-                    elif not _Get.VerifyCode(UserInputAreaCode) :
-                        
-                        for AreaCode in Areas[0] :
                             
-                            try :
-                            
-                                Schools = _Schools(UserInputPlaceCode, AreaCode).Response() # return (SchoolsCodeList, SchoolsNameList)
-                                
-                                for SchoolCode in Schools[0] :
-                                    if Output :
-                                        ClearScreen()
-                                        print ("\tGot'cha ------------\n")
-                                        
-                                        if not ExistingList :
-                                            print ("\tEmpty~~ :(\n")
-                                            
-                                        for Existing in ExistingList :
-                                            print ( f"\t{Existing}\n")
-                                            
-                                        print ("\t" + "-"*20, "\n")
-                                        
-                                        print ( f"You may press <CTRL + C> to skip finding user {Response[1]} in this area")
-                                        Output = False
-                                        
-                                    InitResponseWithSchool = _Get(SchoolCode = SchoolCode)
-                                    ResponseWithSchool = InitResponseWithSchool.Response(BirthDate, UserInputPlaceCode, FourDigitsNumber)
-                                        # Response return [Bool, IdentityCode, SchoolCodeReturn, SchoolNameReturn, StudentNameReturn, PlaceCodeReturn, PlaceNameReturn, AreaCodeReturn, AreaNameReturn]
-                                        
-                                    ProgressionAreas = [Areas[0].index(AreaCode), len(Areas[0])]
-                                    ProgressionSchools = (Schools[0].index(SchoolCode) / len(Schools[0])) * 100
-                                    print (" "*130, end = "\r") # Clear Last Line
-                                    print ( f"Current Progress ({ProgressionAreas[0]}/{ProgressionAreas[1]})({ProgressionSchools:.1f}%) : {ResponseWithSchool[1]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[7]}\t{ResponseWithSchool[5]}", end = "\r")
-                                    
-                                    if not ResponseWithSchool[0] : 
-                                        continue
-                                    
-                                    FileDumpWithSchools(ResponseWithSchool)
-                                    ExistingList.append( f"{ResponseWithSchool[1]}\t{ResponseWithSchool[4]}\t{ResponseWithSchool[2]}\t{ResponseWithSchool[3]}\t{ResponseWithSchool[8]}\t{ResponseWithSchool[6]}")
-                                    Output = True
-                                    
-                            except KeyboardInterrupt:
-                                Output = True
-                                continue
-                                
-                        else :
-                            Output = True
+                    else :
+                        Output = True
                             
                 except KeyboardInterrupt:
                     Output = True

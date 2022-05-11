@@ -12,7 +12,8 @@ HereYouGo.json
 HereYouGo.txt
 
 # Script for own-use
-*draft*
+clean.bat
+build.txt
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
