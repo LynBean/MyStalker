@@ -173,7 +173,7 @@ class _Areas :
                 raise ValueError
                        
         except (KeyError, ValueError) :
-            raise Exception("You might had input the code outside of our database, if the error is still occuring, you can remove the <Database.json> file and try again.")
+            raise Exception("You might had input the code outside of our database, if the error is still occuring, you can remove the <Database.json> file and try again.")   
 
 
 class _Schools :
