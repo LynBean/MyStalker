@@ -1,8 +1,8 @@
 import nose2
 import unittest
 
-from src.__main__ import *
-from src.__retrieve__ import *
+from MYScraper.__main__ import *
+from MYScraper.__retrieve__ import *
 
 class TestCase (unittest.TestCase) :
     

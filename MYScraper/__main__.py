@@ -10,7 +10,7 @@ import datetime
 import random
 import shutil
 
-from src.__retrieve__ import ClearScreen, _PlacesOfBirth, _Areas, _Schools, _Get
+from MYScraper.__retrieve__ import ClearScreen, _PlacesOfBirth, _Areas, _Schools, _Get
 
 
 def ClearLastLine (GetWidthOnly = False) :

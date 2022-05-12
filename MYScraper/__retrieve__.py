@@ -13,7 +13,7 @@ from urllib.request import urlopen
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def ClearScreen(Art = True, TextArt = open ("src\\ASCII_Text_Art", "r", encoding = "UTF-8").readlines()) :
+def ClearScreen(Art = True, TextArt = open ("MYScraper\\ASCII_Text_Art", "r", encoding = "UTF-8").readlines()) :
     try:
         if platform.uname().system in ("Linux", "Darwin"):
             os.system("clear")

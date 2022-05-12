@@ -1,3 +1,13 @@
-include *.lock
+include LICENSE
+include README.md
+include setup.py
 include Pipfile
-recursive-include src *.py
+include Pipfile.lock
+include requirements.txt
+exclude *.txt
+exclude *.json
+recursive-include .circleci config.yml
+recursive-include MYScraper *
+recursive-include MYScraper tests *
+recursive-exclude MYScraper *.pyc
+recursive-exclude MYScraper tests *.pyc
