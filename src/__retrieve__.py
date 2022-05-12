@@ -13,14 +13,21 @@ from urllib.request import urlopen
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def ClearScreen() :
+def ClearScreen(Art = True, TextArt = open ("src\\ASCII_Text_Art", "r", encoding = "UTF-8").readlines()) :
     try:
         if platform.uname().system in ("Linux", "Darwin"):
             os.system("clear")
         elif platform.uname().system == "Windows":
             os.system("cls")
+    
     except:
         pass
+            
+    finally :
+        if Art :
+            for art in TextArt :
+                print ( f"\t{art}", end = "", flush = True )
+                
 
 
 class _PlacesOfBirth :
@@ -426,3 +433,4 @@ if __name__ == "__main__" : # A program to get All the Code Listing including Pl
                     break
             
         input ( "You had entered wrong code, please try again\nPress enter to continue...")
+        

@@ -9,7 +9,7 @@ with open("README.md", "r") as README :
 
 setup(
     name = "MYScraper",
-    version = "2.1.2",
+    version = "2.2.0",
     description = "Scrap user Identity by spamming requests to a government website",
     author = "Asuna",
     author_email = "2003victoryy@1utar.my",
@@ -19,7 +19,6 @@ setup(
     zip_safe = False,
     python_requires = ">=3.10.0",
     install_requires = [
-        "pywin32",
         "DateTime",
         "requests",
         "urllib3",
@@ -27,7 +26,7 @@ setup(
         "lxml"
         ],
     entry_points = {
-        "console_scripts": ["MYScraper = src.__main__:main"],
+        "console_scripts": ["MYScraper = MYScraper.__main__:main"],
     },
     classifiers = [
         "Programming Language :: Python :: 3.10",
