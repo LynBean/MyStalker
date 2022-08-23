@@ -7,7 +7,6 @@ import platform
 import re
 import requests
 import sys
-import subprocess
 import textwrap
 import threading
 import time
@@ -33,10 +32,11 @@ class Spinner:
             for cursor in self.word_list:
                 yield cursor
 
-    def __init__(self,
-                 word_list: list,
-                 delay: float = None
-                 ):
+    def __init__(
+        self,
+        word_list: list,
+        delay: float = None
+        ):
 
         self.spinner_generator = self.spinning_cursor()
         self.word_list = word_list
@@ -59,7 +59,7 @@ class Spinner:
             return False
 
 
-def get_version():
+def get_version() -> str:
     SRC = os.path.abspath(os.path.dirname(__file__))
     PATH = os.path.join(SRC, '__init__.py')
 
@@ -73,7 +73,8 @@ def get_version():
 def cls(
     art: bool = True,
     fore_color: Fore = Fore.CYAN
-):
+    ) -> None:
+
     os.system('cls' if platform.system() == 'Windows' else 'clear')
     if art is True:
         print(
@@ -125,7 +126,7 @@ def digits_generator(
 def date_generator(
     start_date: str,
     end_date: str
-    ):
+    ) -> list:
 
     default_start_date = '900101'
     default_end_date = datetime.now()
@@ -138,11 +139,12 @@ def date_generator(
     return date_list
 
 
-def nric_valid(date_birth: str,
-               state_code: str,
-               digit: str,
-               school_code: str = None
-               ) -> bool:
+def nric_valid(
+    date_birth: str,
+    state_code: str,
+    digit: str,
+    school_code: str = None
+    ) -> bool:
 
     session = requests.Session()
     session.headers.update(
@@ -192,11 +194,12 @@ def nric_valid(date_birth: str,
         return False
 
 
-def retrieve_details(date_birth: str,
-                   state_code: str,
-                   digit: str,
-                   school_code: str
-                   ) -> dict:
+def retrieve_details(
+    date_birth: str,
+    state_code: str,
+    digit: str,
+    school_code: str
+    ) -> dict:
 
     session = requests.Session()
 
@@ -261,7 +264,7 @@ def _main(
     database_validate_days: int = 7,
     digit_start: int = 0,
     digit_stop: int = 10000,
-    ):
+    ) -> None:
 
 
     # -------------------------------------------------------------------------
@@ -271,6 +274,7 @@ def _main(
     tabulate = functools.partial(tabulate, headers = 'keys', tablefmt = tabulate_format, showindex = False, missingval = 'None')
     print = functools.partial(print, flush = print_flush, sep = '\n')
 
+    global df_valid_student
     df_valid_student = pd.DataFrame()
     df_option = pd.DataFrame(
         {
@@ -446,7 +450,7 @@ def _main(
     for b_state_code in df_b_state_code:
         for cl_state_code in df_cl_state_code:
             for date_birth in list_date_birth:
-                
+
                 def print_basic():
                     cls()
                     print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n')
@@ -459,13 +463,13 @@ def _main(
                         print_state_or_school,
                         Style.RESET_ALL
                     )
-                
+
                 print_basic()
                 for digit in digits:
                     width_terminal = os.get_terminal_size().columns
                     spaces = width_terminal - 34 - 30
                     current_progress_line = Back.LIGHTYELLOW_EX + Fore.BLACK + '\t Current Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
-                    
+
                     print(
                         current_progress_line,
                         end = '\r'
@@ -481,21 +485,21 @@ def _main(
                         continue
 
                     # Initiate School Code Variable
-                    if school_code is None:
+                    if user_provide_school is False:
                         df_school_code = df.loc[df['State Code'] == cl_state_code]['School Code']
 
-                    elif school_code is not None:
+                    elif user_provide_school is not False:
                         df_school_code = [school_code]
-                        
+
                     print()
-                    for sc in df_school_code:
-                        school_name = df.loc[df['School Code'] == sc]['School Name'].values[0]
-                        length_string = len(str(sc + school_name))
+                    for school_code in df_school_code:
+                        school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
+                        length_string = len(str(school_code + school_name))
                         width_terminal = os.get_terminal_size().columns
                         spaces = width_terminal - length_string - 30
-                        
+
                         print(
-                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + sc + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + school_code + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
                             end = '\r'
                             )
 
@@ -503,7 +507,7 @@ def _main(
                             date_birth = date_birth,
                             state_code = b_state_code,
                             digit = digit,
-                            school_code = sc
+                            school_code = school_code
                             )
 
                         if response is False:
@@ -513,7 +517,7 @@ def _main(
                             date_birth = date_birth,
                             state_code = b_state_code,
                             digit = digit,
-                            school_code = sc
+                            school_code = school_code
                             )
 
                         df_response = pd.DataFrame(response)
@@ -525,14 +529,14 @@ def _main(
                             dataframe = df_valid_student,
                             file_name = 'Student_Details.csv'
                             )
-                        
+
                         print_basic()
                         print(
                             current_progress_line,
                         )
 
                         continue
-                    
+
                     print_basic()
 
 
@@ -622,6 +626,7 @@ def main():
         PATH = Path().user_data_dir
         print(PATH)
         try:
+            import subprocess
             FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             subprocess.run([FILEBROWSER_PATH, PATH])
         except:

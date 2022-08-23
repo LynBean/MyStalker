@@ -16,12 +16,13 @@ class DataFrame:
     def __init__(self) -> None:
         pass
 
-    def pull_csv(self,
-                  file_name: str = 'DataBase.csv',
-                  dtype: type = str,
-                  ignore_validation: bool = False,
-                  days_ago: int = 1
-                  ) -> pd.DataFrame | pd.Series:
+    def pull_csv(
+        self,
+        file_name: str = 'DataBase.csv',
+        dtype: type = str,
+        ignore_validation: bool = False,
+        days_ago: int = 1
+        ) -> pd.DataFrame | pd.Series:
         '''Read dataframe from csv file.
         '''
 
@@ -52,12 +53,13 @@ class DataFrame:
 
         return df
 
-    def push_csv(self,
-                  dataframe: pd.DataFrame,
-                  file_name: str,
-                  concat: bool = True,
-                  verify_integrity: bool = True,
-                  ) -> None:
+    def push_csv(
+        self,
+        dataframe: pd.DataFrame,
+        file_name: str,
+        concat: bool = True,
+        verify_integrity: bool = True,
+        ) -> None:
         '''Push dataframe to csv file.
         '''
 
@@ -72,8 +74,10 @@ class DataFrame:
                 ignore_index = True,
                 ).drop_duplicates()
 
-        if file_name in ('DataBase.csv', 'Students.csv'):
+        if file_name == 'DataBase.csv':
             dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'], inplace = True)
+        if file_name == 'Students_Details.csv':
+            dataframe.sort_values(by = ['Student NRIC'], inplace = True)
 
         dataframe.to_csv(
             os.path.join(PATH, file_name),
@@ -81,9 +85,10 @@ class DataFrame:
             )
 
 
-    def pull_latest_database(self,
-                    push_csv: bool = False,
-                    ) -> pd.DataFrame | pd.Series:
+    def pull_latest_database(
+        self,
+        push_csv: bool = False,
+        ) -> pd.DataFrame | pd.Series:
         '''Update the database with latest data.
         '''
 
