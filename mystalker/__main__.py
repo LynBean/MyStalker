@@ -488,14 +488,14 @@ def _main(
                         df_school_code = [school_code]
                         
                     print()
-                    for school_code in df_school_code:
-                        school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
-                        length_string = len(str(school_code + school_name))
+                    for sc in df_school_code:
+                        school_name = df.loc[df['School Code'] == sc]['School Name'].values[0]
+                        length_string = len(str(sc + school_name))
                         width_terminal = os.get_terminal_size().columns
                         spaces = width_terminal - length_string - 30
                         
                         print(
-                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + school_code + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + sc + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
                             end = '\r'
                             )
 
@@ -503,7 +503,7 @@ def _main(
                             date_birth = date_birth,
                             state_code = b_state_code,
                             digit = digit,
-                            school_code = school_code
+                            school_code = sc
                             )
 
                         if response is False:
@@ -513,7 +513,7 @@ def _main(
                             date_birth = date_birth,
                             state_code = b_state_code,
                             digit = digit,
-                            school_code = school_code
+                            school_code = sc
                             )
 
                         df_response = pd.DataFrame(response)
