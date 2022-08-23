@@ -507,10 +507,6 @@ def _main(
                             )
 
                         if response is False:
-                            print_basic()
-                            print(
-                                current_progress_line,
-                            )
                             continue
 
                         response = retrieve_details(
@@ -530,7 +526,6 @@ def _main(
                             file_name = 'Student_Details.csv'
                             )
                         
-                        cls()
                         print_basic()
                         print(
                             current_progress_line,
@@ -538,7 +533,6 @@ def _main(
 
                         continue
                     
-                    cls()
                     print_basic()
 
 
