@@ -1,89 +1,77 @@
 
-Malaysian Identity Scraper
-=================
-[![PythonVersion](https://img.shields.io/pypi/pyversions/MYScraper?label=Python)](https://www.python.org/downloads/) ![Format](https://img.shields.io/pypi/format/myscraper?label=Format) [![PyPI](https://img.shields.io/pypi/v/MYSCRAPER?label=PyPI)](https://pypi.org/project/MYScraper/) [![LICENSE](https://img.shields.io/github/license/victoryy2003/Malaysian-Identity-Scraper?label=LICENSE)](https://github.com/victoryy2003/Malaysian-Identity-Scraper/blob/main/LICENSE) 
+# Only for Malaysian
 
-`MYScraper` is a command-line application written in Python that scrapes users identity including his/her Identity Numbers, Full name, Place of birth / Area / District of the user. 
+[![LICENSE](https://img.shields.io/github/license/LynBean/MyStalker?label=LICENSE)](https://github.com/LynBean/MyStalker/blob/main/LICENSE)
 
-*Use responsibly. For Educational Purposes Only*
+`mystalker` is a command-line application written in Python that can retrieve students details such as NRIC, Student Name and others.
 
+##### *Use responsibly. For Educational Purposes Only*
 
-Install
+## Install
+
 -------
 
-**Only for Python version >= 3.10**
+**Only for Python version >= 3.3**
 
-To install MYScraper :
+### To install MyStalker
+
 ```bash
-$ pip install MYScraper
+pip install 'git+https://github.com/LynBean/MyStalker@main'
 ```
 
-To update MYScraper :
+### To update MyStalker
+
 ```bash
-$ pip install MYScraper --upgrade
-```
-Alternatively, you can clone the project and run the following command to install:
-Make sure you cd into the *Malaysian-Identity-Scraper-main* folder before performing the command below.
-```
-$ pip install -e .
+pip install 'git+https://github.com/LynBean/MyStalker@main' --upgrade
 ```
 
+### Alternatively, you can clone the project and run the following command to install
 
-Usage
+Make sure you cd into the *MyStalker-main* folder before performing the command below.
+
+```bash
+pip install .
+```
+
+## Usage
+
 -----
 
-To scrape a user :
+### Simply Start
+
 ```bash
-$ MYScraper
+mystalker
 ```
 
-There are Four options need to be fill in :
-```
-$ Please enter the birth date : (031231) 
-$ Please enter the place of birth : (13)(If no just keep it blank) 
-$ Please enter the gender : (Female)(If no just keep it blank) 
-$ Please enter the school code : (YCC4102)(If no just keep it blank) 
-```
-*Providing Birth date is compulsary*
+### For faster searching, you can use the following options
 
-The resulting directory structure will be :
-```
-Current Directory
-├── Database.json << "Don't touch this file"
-├── HereYouGo.json << "Final result in JSON format"
-└── HereYouGo.txt << "Final result in TEXT format"
-```
+If result not good for you, you can increase the range
 
-Develop
--------
-
-Clone the repo and create a virtualenv 
 ```bash
-$ virtualenv venv
-$ source venv/bin/activate
-$ python setup.py develop
+mystalker --digit-start=0 --digit-stop=3000
 ```
 
-[//]: # (Running Tests)
-[//]: # (-------------)
+### See where is the data stored
 
-[//]: # (```bash)
-[//]: # ($ python setup.py test)
+```bash
+mystalker --where
+```
 
-[//]: # (# or just )
+## Options
 
-[//]: # ($ nosetests)
-[//]: # (```)
+-----
 
-Contributing
-------------
-
-1. Check the open issues or open a new issue to start a discussion around
-   your feature idea or the bug you found
-2. Send a pull request
-
-License
--------
-GNU GENERAL PUBLIC LICENSE
-
-Version 3, 29 June 2007
+```bash
+   -h, --help           show this help message and exit
+   --version            show program's version number and exit
+   -p, --print-flush    Whether to forcibly flush the stream
+   -f FORMAT, --tabulate-format FORMAT
+                        The format to use for tabulating the data
+   -d DAYS, --database-validate-days DAYS
+                        How many days can a DataBase.csv be valid, If 7, it will get update if exceeds 7 days count from the last update
+   -s INTEGER, --digit-start INTEGER
+                        Generate NRIC last 4 digits start from this number
+   -e INTEGER, --digit-stop INTEGER
+                        Generate NRIC last 4 digits stop at this number
+   -w, --where          Show where is the data stored
+```
