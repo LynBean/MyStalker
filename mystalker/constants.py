@@ -1,6 +1,7 @@
 
 import requests
 import urllib3
+import http
 
 
 BASE_URL = 'https://sapsnkra.moe.gov.my/'
@@ -11,7 +12,7 @@ SENARAI_PPD_URL = BASE_URL + 'ajax/senarai_ppd.php'
 IBUBAPA_MAIN_URL = BASE_URL + 'ibubapa2/indexv2.php'
 SENARAI_SEKOLAH_URL = BASE_URL + 'ajax/ddl_senarai_sekolah.php'
 
-NETWORK_ERROR_EXCEPTIONS = (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, TimeoutError)
+NETWORK_ERROR_EXCEPTIONS = (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, http.client.RemoteDisconnected, TimeoutError)
 
 
 

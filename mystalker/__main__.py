@@ -446,18 +446,29 @@ def _main(
     for b_state_code in df_b_state_code:
         for cl_state_code in df_cl_state_code:
             for date_birth in list_date_birth:
-                for digit in digits:
-
+                
+                def print_basic():
                     cls()
                     print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n')
                     print(
                         tabulate(
                             df_valid_student,
                             ),
+                        '',
                         Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
                         print_state_or_school,
-                        Back.LIGHTYELLOW_EX + Fore.BLACK + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + 'NRIC ' + date_birth + b_state_code + digit,
-                        Style.RESET_ALL,
+                        Style.RESET_ALL
+                    )
+                
+                print_basic()
+                for digit in digits:
+                    width_terminal = os.get_terminal_size().columns
+                    spaces = width_terminal - 34 - 30
+                    current_progress_line = Back.LIGHTYELLOW_EX + Fore.BLACK + '\t Current Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
+                    
+                    print(
+                        current_progress_line,
+                        end = '\r'
                         )
 
                     response = nric_valid(
@@ -475,18 +486,17 @@ def _main(
 
                     elif school_code is not None:
                         df_school_code = [school_code]
-
+                        
+                    print()
                     for school_code in df_school_code:
-
-                        cls()
+                        school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
+                        length_string = len(str(school_code + school_name))
+                        width_terminal = os.get_terminal_size().columns
+                        spaces = width_terminal - length_string - 30
+                        
                         print(
-                            tabulate(
-                                df_valid_student,
-                                ),
-                            Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
-                            print_state_or_school,
-                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + 'NRIC ' + date_birth + b_state_code + digit + ' in school ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0],
-                            Style.RESET_ALL,
+                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + school_code + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            end = '\r'
                             )
 
                         response = nric_valid(
@@ -497,6 +507,10 @@ def _main(
                             )
 
                         if response is False:
+                            print_basic()
+                            print(
+                                current_progress_line,
+                            )
                             continue
 
                         response = retrieve_details(
@@ -515,8 +529,17 @@ def _main(
                             dataframe = df_valid_student,
                             file_name = 'Student_Details.csv'
                             )
+                        
+                        cls()
+                        print_basic()
+                        print(
+                            current_progress_line,
+                        )
 
                         continue
+                    
+                    cls()
+                    print_basic()
 
 
 
