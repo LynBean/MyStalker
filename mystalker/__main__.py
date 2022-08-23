@@ -298,19 +298,19 @@ def _main(
     #                            PROMPTS
 
     def set_date_birth():
-        date_birth = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\tEnter date of birth (YYMMDD): ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        date_birth = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter date of birth (YYMMDD): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
         try:
             if date_birth == '' or len(date_birth) != 6:
                 raise ValueError
             datetime.strptime(date_birth, '%y%m%d')
         except ValueError:
-            input(Back.LIGHTRED_EX + Fore.RED + '\n\tInvalid Date of Birth' + Style.RESET_ALL)
+            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid Date of Birth' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Date of Birth'] = date_birth
 
     def set_gender():
-        gender = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\tEnter gender (MALE/FEMALE): ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        gender = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter gender (MALE/FEMALE): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
 
         try:
             if gender == '':
@@ -320,31 +320,31 @@ def _main(
             else:
                 raise ValueError
         except (AttributeError, ValueError):
-            input(Back.LIGHTRED_EX + Fore.RED + '\n\tInvalid Gender' + Style.RESET_ALL)
+            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid Gender' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Gender'] = gender.upper()
 
     def set_b_state_code():
-        b_state_code = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\tEnter born state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        b_state_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter born state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
         if b_state_code == '' or b_state_code not in df['State Code'].values:
-            input(Back.LIGHTRED_EX + Fore.RED + '\n\tInvalid State Code' + Style.RESET_ALL)
+            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid State Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Born State Code'] = b_state_code
 
     def set_cl_state_code():
-        cl_state_code = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\tEnter current living state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        cl_state_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter current living state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
         if cl_state_code == '' or cl_state_code not in df['State Code'].values:
-            input(Back.LIGHTRED_EX + Fore.RED + '\n\tInvalid State Code' + Style.RESET_ALL)
+            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid State Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Current Living State Code'] = cl_state_code
 
     def set_school_code():
-        school_code = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\tEnter school code: ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        school_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter school code: ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
         if school_code == '' or school_code.upper() not in df['School Code'].values:
-            input(Back.LIGHTRED_EX + Fore.RED + '\n\tInvalid School Code' + Style.RESET_ALL)
+            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid School Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'School Code'] = school_code.upper()
@@ -377,12 +377,12 @@ def _main(
             '5': set_school_code
         }
 
-        option = input(Back.LIGHTYELLOW_EX + Fore.CYAN + '\n\tEnter your option: ' + Back.LIGHTBLUE_EX + Fore.RED + Style.RESET_ALL)
+        option = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\n\tEnter your option: ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
 
         if option.upper() == 'S':
             if df_option['Date of Birth'].values[0] is None:
-                start_date = input(Back.LIGHTRED_EX + Fore.RED + '\n\tEnter a starting date (default: 900101)(You may leave it blank): ')
-                end_date = input(Back.LIGHTRED_EX + Fore.RED + '\n\tEnter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
+                start_date = input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tEnter a starting date (default: 900101)(You may leave it blank): ')
+                end_date = input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tEnter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
 
             break
 
@@ -456,7 +456,7 @@ def _main(
                             ),
                         Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
                         print_state_or_school,
-                        Back.LIGHTYELLOW_EX + Fore.CYAN + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.RED + 'NRIC ' + date_birth + b_state_code + digit,
+                        Back.LIGHTYELLOW_EX + Fore.BLACK + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + 'NRIC ' + date_birth + b_state_code + digit,
                         Style.RESET_ALL,
                         )
 
@@ -485,7 +485,7 @@ def _main(
                                 ),
                             Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
                             print_state_or_school,
-                            Back.LIGHTYELLOW_EX + Fore.CYAN + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.RED + 'NRIC ' + date_birth + b_state_code + digit + ' in school ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0],
+                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\tCurrent Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + 'NRIC ' + date_birth + b_state_code + digit + ' in school ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0],
                             Style.RESET_ALL,
                             )
 
