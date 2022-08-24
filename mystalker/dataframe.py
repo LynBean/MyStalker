@@ -1,7 +1,9 @@
 
 import os
 import pandas as pd
+import time
 
+from colorama import Fore, Back, Style
 from datetime import datetime, timedelta
 
 from .path import Path
@@ -37,10 +39,18 @@ class DataFrame:
                     push_csv = True
                 )
 
-            df = pd.read_csv(
-                FULL_PATH,
-                dtype = dtype
-                )
+            while True:
+                try:
+                    df = pd.read_csv(
+                        FULL_PATH,
+                        dtype = dtype
+                        )
+                    break
+                except PermissionError:
+                    print(Back.RED + Fore.BLACK + "\t PermissionError: Retrying ... (Kindly check if " + file_name + " is opening, kindly close it / or run this script as Administrator) " + Style.RESET_ALL, end = '\r')
+                    time.sleep(5)
+                    continue
+            
 
         except FileNotFoundError:
             if file_name == 'DataBase.csv':
@@ -79,10 +89,17 @@ class DataFrame:
         if file_name == 'Students_Details.csv':
             dataframe.sort_values(by = ['Student NRIC'], inplace = True)
 
-        dataframe.to_csv(
-            os.path.join(PATH, file_name),
-            index = False
-            )
+        while True:
+            try:
+                dataframe.to_csv(
+                    os.path.join(PATH, file_name),
+                    index = False
+                    )
+                break
+            except PermissionError:
+                print(Back.RED + Fore.BLACK + "\t PermissionError: Retrying ... (Kindly check if " + file_name + " is opening, kindly close it / or run this script as Administrator) " + Style.RESET_ALL, end = '\r')
+                time.sleep(5)
+                continue
 
 
     def pull_latest_database(

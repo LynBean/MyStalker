@@ -6,8 +6,8 @@ import sys
 from setuptools import setup
 
 
-if sys.version_info < (3, 5):
-    sys.exit('MyStalker requires Python >= 3.5.')
+if sys.version_info < (3, 3):
+    sys.exit('Requiring Python >= 3.3')
 
 with open('README.md', 'r', encoding = 'UTF-8') as README :
     LongDescription = README.read()

@@ -1,6 +1,6 @@
 
-import time
 import requests
+import time
 import urllib3
 
 from bs4 import BeautifulSoup as bs
@@ -18,11 +18,14 @@ class School:
         state_code: str,
         district_code: str
         ) -> tuple:
-        """
+        '''
         Pull latest data from the web.
-        """
+        '''
 
         session = requests.Session()
+        session.headers.update(
+        USER_AGENTS
+        )
 
         while True:
             try:
@@ -34,7 +37,8 @@ class School:
                         ),
                     verify = False
                     )
-                break
+                if html_response.status_code == 200:
+                    break
             except NETWORK_ERROR_EXCEPTIONS:
                 time.sleep(5)
                 continue

@@ -45,7 +45,7 @@ class Spinner:
 
     def spinner_task(self):
         while self.busy:
-            print(next(self.spinner_generator), end = '\r')
+            print(next(self.spinner_generator), flush = True, end = '\r')
             time.sleep(self.delay)
 
     def __enter__(self):
@@ -148,7 +148,7 @@ def nric_valid(
 
     session = requests.Session()
     session.headers.update(
-        {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'}
+        USER_AGENT
         )
 
     while True:
@@ -165,6 +165,8 @@ def nric_valid(
             if html_response.status_code == 200:
                 break
         except NETWORK_ERROR_EXCEPTIONS:
+            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(5)
             continue
 
     if 'Tidak Wujud' in html_response.text:
@@ -188,6 +190,8 @@ def nric_valid(
             if html_response.status_code == 200:
                 break
         except NETWORK_ERROR_EXCEPTIONS:
+            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(5)
             continue
 
     if 'Tidak Wujud' in html_response.text:
@@ -202,6 +206,9 @@ def retrieve_details(
     ) -> dict:
 
     session = requests.Session()
+    session.headers.update(
+        USER_AGENT
+        )
 
     while True:
         try:
@@ -218,15 +225,25 @@ def retrieve_details(
             if html_response.status_code == 200:
                 break
         except NETWORK_ERROR_EXCEPTIONS:
+            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(5)
             continue
 
     if ('Tidak Wujud' in html_response.text):
         return None
 
-    html_response = session.get(
-        IBUBAPA_SEMAK_URL,
-        verify = False
-    )
+    while True:
+        try:
+            html_response = session.get(
+                IBUBAPA_SEMAK_URL,
+                verify = False
+            )
+            if html_response.status_code == 200:
+                break
+        except NETWORK_ERROR_EXCEPTIONS:
+            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(5)
+            continue
 
     soup = bs(html_response.text, 'lxml')
     student_name = soup.find(
@@ -238,7 +255,6 @@ def retrieve_details(
                 ).text.strip()
 
     df_school = df.loc[df['School Code'] == school_code]
-    df_school['State Code'] = df_school['State Code'].astype(str)
 
     state_code = df_school['State Code'].values[0]
     state_name = df_school['State Name'].values[0].split(' - ')[1]
@@ -291,7 +307,7 @@ def _main(
     #                           LOAD DATABASE
 
     global df
-    with Spinner(['\t' + Fore.LIGHTYELLOW_EX + x + Back.LIGHTBLACK_EX + Fore.WHITE + '\t Getting latest database, this might take a while :D \t\t\t\t' + Style.RESET_ALL for x in '⣷⣯⣟⡿⢿⣻⣽⣾'],
+    with Spinner(['\t' + Fore.YELLOW + x + Back.LIGHTBLACK_EX + Fore.WHITE + '\t Getting latest database, this might take a while :D \t\t\t\t' + Style.RESET_ALL for x in '⣷⣯⣟⡿⢿⣻⣽⣾'],
                  delay = 0.1):
         df = DF().pull_csv(
             days_ago = database_validate_days,
@@ -302,19 +318,19 @@ def _main(
     #                            PROMPTS
 
     def set_date_birth():
-        date_birth = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter date of birth (YYMMDD): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        date_birth = input(Back.YELLOW + Fore.BLACK + '\t Enter date of birth (YYMMDD): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
         try:
             if date_birth == '' or len(date_birth) != 6:
                 raise ValueError
             datetime.strptime(date_birth, '%y%m%d')
         except ValueError:
-            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid Date of Birth' + Style.RESET_ALL)
+            input(Back.RED + Fore.BLACK + '\n\t Invalid Date of Birth' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Date of Birth'] = date_birth
 
     def set_gender():
-        gender = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter gender (MALE/FEMALE): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        gender = input(Back.YELLOW + Fore.BLACK + '\t Enter gender (MALE/FEMALE): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
 
         try:
             if gender == '':
@@ -324,31 +340,31 @@ def _main(
             else:
                 raise ValueError
         except (AttributeError, ValueError):
-            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid Gender' + Style.RESET_ALL)
+            input(Back.RED + Fore.BLACK + '\n\t Invalid Gender' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Gender'] = gender.upper()
 
     def set_b_state_code():
-        b_state_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter born state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        b_state_code = input(Back.YELLOW + Fore.BLACK + '\t Enter born state code (2 digits): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
         if b_state_code == '' or b_state_code not in df['State Code'].values:
-            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid State Code' + Style.RESET_ALL)
+            input(Back.RED + Fore.BLACK + '\n\t Invalid State Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Born State Code'] = b_state_code
 
     def set_cl_state_code():
-        cl_state_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter current living state code (2 digits): ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        cl_state_code = input(Back.YELLOW + Fore.BLACK + '\t Enter current living state code (2 digits): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
         if cl_state_code == '' or cl_state_code not in df['State Code'].values:
-            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid State Code' + Style.RESET_ALL)
+            input(Back.RED + Fore.BLACK + '\n\t Invalid State Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'Current Living State Code'] = cl_state_code
 
     def set_school_code():
-        school_code = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\tEnter school code: ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        school_code = input(Back.YELLOW + Fore.BLACK + '\t Enter school code: ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
         if school_code == '' or school_code.upper() not in df['School Code'].values:
-            input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tInvalid School Code' + Style.RESET_ALL)
+            input(Back.RED + Fore.BLACK + '\n\t Invalid School Code' + Style.RESET_ALL)
             return
 
         df_option.loc[0, 'School Code'] = school_code.upper()
@@ -381,12 +397,12 @@ def _main(
             '5': set_school_code
         }
 
-        option = input(Back.LIGHTYELLOW_EX + Fore.BLACK + '\n\tEnter your option: ' + Back.LIGHTBLUE_EX + Fore.BLACK + Style.RESET_ALL)
+        option = input(Back.YELLOW + Fore.BLACK + '\n\t Enter your option: ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
 
         if option.upper() == 'S':
             if df_option['Date of Birth'].values[0] is None:
-                start_date = input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tEnter a starting date (default: 900101)(You may leave it blank): ')
-                end_date = input(Back.LIGHTRED_EX + Fore.BLACK + '\n\tEnter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
+                start_date = input(Back.RED + Fore.BLACK + '\n\t Enter a starting date (default: 900101)(You may leave it blank): ')
+                end_date = input(Back.RED + Fore.BLACK + '\n\t Enter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
 
             break
 
@@ -468,7 +484,7 @@ def _main(
                 for digit in digits:
                     width_terminal = os.get_terminal_size().columns
                     spaces = width_terminal - 34 - 30
-                    current_progress_line = Back.LIGHTYELLOW_EX + Fore.BLACK + '\t Current Progress: ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
+                    current_progress_line = Back.YELLOW + Fore.BLACK + '\t Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
 
                     print(
                         current_progress_line,
@@ -499,7 +515,7 @@ def _main(
                         spaces = width_terminal - length_string - 30
 
                         print(
-                            Back.LIGHTYELLOW_EX + Fore.BLACK + '\t ' + school_code + ' ' + Back.LIGHTBLUE_EX + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            Back.YELLOW + Fore.BLACK + '\t ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
                             end = '\r'
                             )
 
@@ -626,7 +642,7 @@ def main():
         PATH = Path().user_data_dir
         print(PATH)
         try:
-            import subprocess
+            import subprocess # Only available on Windows system, this will open the folder in the explorer
             FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             subprocess.run([FILEBROWSER_PATH, PATH])
         except:
@@ -664,8 +680,8 @@ def main():
             sep = '\n'
             )
 
-        input('\n\t>ENTER<\n\t')
-        Style.RESET_ALL
+        input('\n\t>ENTER<\n\t' + Style.RESET_ALL)
+        
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 
+import socket
 import requests
 import urllib3
 import http
@@ -12,8 +13,23 @@ SENARAI_SEKOLAH_URL = BASE_URL + 'ajax/ddl_senarai_sekolah.php'
 IBUBAPA_MAIN_URL = BASE_URL + 'ibubapa2/indexv2.php'
 IBUBAPA_SEMAK_URL = BASE_URL + 'ibubapa2/semak.php'
 
-NETWORK_ERROR_EXCEPTIONS = (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, urllib3.exceptions.ConnectTimeoutError, urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError, http.client.RemoteDisconnected, TimeoutError)
+USER_AGENT = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+    }
 
+NETWORK_ERROR_EXCEPTIONS = (
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ConnectionError,
+    urllib3.exceptions.ConnectTimeoutError,
+    urllib3.exceptions.NewConnectionError,
+    urllib3.exceptions.ReadTimeoutError,
+    urllib3.exceptions.MaxRetryError,
+    http.client.RemoteDisconnected,
+    socket.gaierror,
+    ConnectionRefusedError,
+    TimeoutError
+    )
 
 
 ### https://en.wikipedia.org/wiki/Malaysian_identity_card
