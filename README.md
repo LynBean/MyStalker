@@ -61,17 +61,67 @@ mystalker --where
 
 -----
 
-```bash
-   -h, --help           show this help message and exit
-   --version            show program's version number and exit
-   -p, --print-flush    Whether to forcibly flush the stream
-   -f FORMAT, --tabulate-format FORMAT
+```
+Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER]
+
+Retrieve Student Details from any given details
+
+Options:
+
+  -h, --help            show this help message and exit
+
+  -v, --version         show program's version number and exit
+
+  -w, --where           Show where is the data stored
+
+  --print-flush         Whether to forcibly flush the stream
+
+  --instant-start       Skip the menu and start immediately
+
+  --tabulate-format FORMAT
                         The format to use for tabulating the data
-   -d DAYS, --database-validate-days DAYS
+
+  --database-validate-days DAYS
                         How many days can a DataBase.csv be valid, If 7, it will get update if exceeds 7 days count from the last update
-   -s INTEGER, --digit-start INTEGER
+
+  --digit-start INTEGER
                         Generate NRIC last 4 digits start from this number
-   -e INTEGER, --digit-stop INTEGER
-                        Generate NRIC last 4 digits stop at this number
-   -w, --where          Show where is the data stored
+
+  --digit-stop INTEGER  Generate NRIC last 4 digits stop at this number
+
+  --cl-state-code CODE  State Code of the State where the student is living currently
+
+  --b-state-code CODE   State Code of the State where the student is born
+
+  --school-code CODE    School Code of the School
+
+  --birth-date YYMMDD   Birth Date of the Student
+
+  --birth-date-start YYMMDD
+                        Start date of a looping birth date
+
+  --birth-date-end YYMMDD
+                        End date of a looping birth date
+
+  --gender GENDER       Gender of the Student
+
+
+How to start:
+
+$ mystalker
+
+Tips:
+For faster searching, you can use the following options:
+
+$ mystalker --digit-stop 3000
+
+Note for last 4 digits information:
+Person born prior and in the year 1999 will have the number started with 5## or 6## or 7## while a person born after and in the year 2000 will have the number started with 0##
+
+See where is the data stored:
+
+$ mystalker --where
+
+If you don't know what is your STATE CODE or SCHOOL CODE, please refer to the following link:
+https://github.com/LynBean/MyStalker/blob/main/Example%20Database/DataBase.csv
 ```

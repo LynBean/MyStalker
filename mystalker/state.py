@@ -21,7 +21,7 @@ class State:
 
         session = requests.Session()
         session.headers.update(
-        USER_AGENTS
+        USER_AGENT
         )
 
         while True:

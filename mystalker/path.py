@@ -8,7 +8,7 @@ from platformdirs import user_data_dir, user_config_dir, user_cache_dir, site_da
 class Path:
 
     def __init__(self):
-        self.APP_NAME = 'My-Stalker'
+        self.APP_NAME = 'MyStalker'
         self.APP_AUTHOR = 'Kim'
 
     def makedir(self, path):

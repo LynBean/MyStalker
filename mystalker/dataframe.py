@@ -1,10 +1,12 @@
 
 import os
 import pandas as pd
+import requests
 import time
 
 from colorama import Fore, Back, Style
 from datetime import datetime, timedelta
+from random import randint
 
 from .path import Path
 from .state import State
@@ -23,7 +25,8 @@ class DataFrame:
         file_name: str = 'DataBase.csv',
         dtype: type = str,
         ignore_validation: bool = False,
-        days_ago: int = 1
+        days_ago: int = 1,
+        from_url: bool = False,
         ) -> pd.DataFrame | pd.Series:
         '''Read dataframe from csv file.
         '''
@@ -47,14 +50,36 @@ class DataFrame:
                         )
                     break
                 except PermissionError:
-                    print(Back.RED + Fore.BLACK + "\t PermissionError: Retrying ... (Kindly check if " + file_name + " is opening, kindly close it / or run this script as Administrator) " + Style.RESET_ALL, end = '\r')
-                    time.sleep(5)
+                    print(Back.RED + Fore.BLACK + '\t PermissionError: Retrying ... (Kindly check if ' + file_name + ' is opening, kindly close it / or run this script as Administrator) ' + Style.RESET_ALL, end = '\r')
+                    time.sleep(randint(1, 5))
                     continue
-            
 
-        except FileNotFoundError:
+
+        except (FileNotFoundError, pd.errors.EmptyDataError):
+
             if file_name == 'DataBase.csv':
-                df = self.pull_latest_database(
+
+                if from_url is True:
+                    URL = 'https://raw.githubusercontent.com/LynBean/MyStalker/main/Example%20Database/DataBase.csv'
+                    html_response = requests.get(URL)
+                    with open (FULL_PATH, 'w+') as f:
+                        f.write(html_response.text)
+
+                    os.utime(FULL_PATH, (27000, 27000))
+
+                    while True:
+                        try:
+                            df = pd.read_csv(
+                                FULL_PATH,
+                                dtype = dtype
+                                )
+                            break
+                        except PermissionError:
+                            time.sleep(randint(1, 5))
+                            continue
+
+                else:
+                    df = self.pull_latest_database(
                     push_csv = True
                     )
 
@@ -97,8 +122,8 @@ class DataFrame:
                     )
                 break
             except PermissionError:
-                print(Back.RED + Fore.BLACK + "\t PermissionError: Retrying ... (Kindly check if " + file_name + " is opening, kindly close it / or run this script as Administrator) " + Style.RESET_ALL, end = '\r')
-                time.sleep(5)
+                print(Back.RED + Fore.BLACK + '\t PermissionError: Retrying ... (Kindly check if ' + file_name + ' is opening, kindly close it / or run this script as Administrator) ' + Style.RESET_ALL, end = '\r')
+                time.sleep(randint(1, 5))
                 continue
 
 

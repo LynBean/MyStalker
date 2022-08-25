@@ -16,6 +16,7 @@ import urllib3
 from bs4 import BeautifulSoup as bs
 from colorama import Fore, Back, Style
 from datetime import datetime, timedelta
+from random import randint
 from tabulate import tabulate
 
 from .constants import *
@@ -123,12 +124,36 @@ def digits_generator(
     return digits
 
 
+def valid_date(
+    date,
+    is_argparse: bool = False
+    ) -> bool | str:
+
+    try:
+        if len(date) != 6:
+            raise ValueError
+
+        datetime.strptime(date, '%y%m%d')
+
+        if is_argparse is True:
+            return date
+
+        return True
+
+    except ValueError:
+
+        if is_argparse is True:
+            raise argparse.ArgumentTypeError('Date must be in YYMMDD format')
+
+        return False
+
+
 def date_generator(
     start_date: str,
     end_date: str
     ) -> list:
 
-    default_start_date = '900101'
+    default_start_date = '000101'
     default_end_date = datetime.now()
 
     start_date = datetime.strptime(start_date if start_date is not None else default_start_date, '%y%m%d')
@@ -166,7 +191,7 @@ def nric_valid(
                 break
         except NETWORK_ERROR_EXCEPTIONS:
             print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(5)
+            time.sleep(randint(1, 5))
             continue
 
     if 'Tidak Wujud' in html_response.text:
@@ -191,7 +216,7 @@ def nric_valid(
                 break
         except NETWORK_ERROR_EXCEPTIONS:
             print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(5)
+            time.sleep(randint(1, 5))
             continue
 
     if 'Tidak Wujud' in html_response.text:
@@ -226,7 +251,7 @@ def retrieve_details(
                 break
         except NETWORK_ERROR_EXCEPTIONS:
             print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(5)
+            time.sleep(randint(1, 5))
             continue
 
     if ('Tidak Wujud' in html_response.text):
@@ -242,7 +267,7 @@ def retrieve_details(
                 break
         except NETWORK_ERROR_EXCEPTIONS:
             print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(5)
+            time.sleep(randint(1, 5))
             continue
 
     soup = bs(html_response.text, 'lxml')
@@ -278,8 +303,16 @@ def _main(
     print_flush: bool = False,
     tabulate_format: str = 'psql',
     database_validate_days: int = 7,
+    instant_start: bool = False,
     digit_start: int = 0,
     digit_stop: int = 10000,
+    school_code: str = None,
+    b_state_code: str = None,
+    cl_state_code: str = None,
+    birth_date: str = None,
+    birth_date_start: str = None,
+    birth_date_end: str = None,
+    gender: str = None,
     ) -> None:
 
 
@@ -302,6 +335,15 @@ def _main(
         }
     )
 
+    df_option.loc[0, 'Date of Birth'] = birth_date
+    start_date = birth_date_start
+    end_date = birth_date_end
+    df_option.loc[0, 'Gender'] = gender
+    df_option.loc[0, 'Born State Code'] = b_state_code
+    df_option.loc[0, 'Current Living State Code'] = cl_state_code
+    df_option.loc[0, 'School Code'] = school_code
+
+
     cls()
     # -------------------------------------------------------------------------
     #                           LOAD DATABASE
@@ -319,11 +361,8 @@ def _main(
 
     def set_date_birth():
         date_birth = input(Back.YELLOW + Fore.BLACK + '\t Enter date of birth (YYMMDD): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-        try:
-            if date_birth == '' or len(date_birth) != 6:
-                raise ValueError
-            datetime.strptime(date_birth, '%y%m%d')
-        except ValueError:
+
+        if valid_date(date_birth) is False:
             input(Back.RED + Fore.BLACK + '\n\t Invalid Date of Birth' + Style.RESET_ALL)
             return
 
@@ -370,7 +409,7 @@ def _main(
         df_option.loc[0, 'School Code'] = school_code.upper()
 
 
-    while True:
+    while instant_start is False:
         cls()
         print(
             tabulate(
@@ -400,9 +439,20 @@ def _main(
         option = input(Back.YELLOW + Fore.BLACK + '\n\t Enter your option: ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
 
         if option.upper() == 'S':
+
             if df_option['Date of Birth'].values[0] is None:
-                start_date = input(Back.RED + Fore.BLACK + '\n\t Enter a starting date (default: 900101)(You may leave it blank): ')
-                end_date = input(Back.RED + Fore.BLACK + '\n\t Enter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
+
+                while True:
+                    start_date = input(Back.RED + Fore.BLACK + '\n\t Enter a starting date (default: 000101)(You may leave it blank): ' + Style.RESET_ALL)
+                    if valid_date(start_date) is True:
+                        break
+                    print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
+
+                while True:
+                    end_date = input(Back.RED + Fore.BLACK + '\n\t Enter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
+                    if valid_date(end_date) is True:
+                        break
+                    print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
 
             break
 
@@ -463,28 +513,34 @@ def _main(
     # -------------------------------------------------------------------------
     #                           MAIN
 
+    current_progress = 0
     for b_state_code in df_b_state_code:
-        for cl_state_code in df_cl_state_code:
-            for date_birth in list_date_birth:
+        for date_birth in list_date_birth:
+            for digit in digits:
 
-                def print_basic():
-                    cls()
-                    print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n')
-                    print(
-                        tabulate(
-                            df_valid_student,
-                            ),
-                        '',
-                        Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
-                        print_state_or_school,
-                        Style.RESET_ALL
-                    )
+                current_progress += 1
+                total_progress = len(df_b_state_code) * len(list_date_birth) * len(digits)
+                percentage_progress = str(round(current_progress / total_progress * 100, 3)) + '%'
 
-                print_basic()
-                for digit in digits:
+                for cl_state_code in df_cl_state_code:
+
+                    def print_basic():
+                        cls()
+                        print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n' + Style.RESET_ALL)
+                        print(
+                            tabulate(
+                                df_valid_student,
+                                ),
+                            '',
+                            Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0],
+                            print_state_or_school
+                        )
+
+                    print_basic()
+
                     width_terminal = os.get_terminal_size().columns
-                    spaces = width_terminal - 34 - 30
-                    current_progress_line = Back.YELLOW + Fore.BLACK + '\t Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
+                    spaces = width_terminal - len(percentage_progress) - 38 - 30
+                    current_progress_line = '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
 
                     print(
                         current_progress_line,
@@ -498,24 +554,28 @@ def _main(
                         )
 
                     if response is False:
-                        continue
+                        break
 
                     # Initiate School Code Variable
                     if user_provide_school is False:
                         df_school_code = df.loc[df['State Code'] == cl_state_code]['School Code']
+                        length_school = str(len(df_school_code.values))
 
                     elif user_provide_school is not False:
                         df_school_code = [school_code]
+                        length_school = '1'
 
                     print()
+                    current_school_index = 0
                     for school_code in df_school_code:
+                        current_school_index += 1
                         school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
-                        length_string = len(str(school_code + school_name))
+                        length_string = len(str(current_school_index) + length_school + school_code + school_name) + (5 if length_school != '1' else -2)
                         width_terminal = os.get_terminal_size().columns
                         spaces = width_terminal - length_string - 30
 
                         print(
-                            Back.YELLOW + Fore.BLACK + '\t ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            '\t' + ((Back.BLACK + Fore.WHITE + ' (' + str(current_school_index) + '/' + length_school + ') ') if length_school != '1' else '') + Back.YELLOW + Fore.BLACK + ' ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
                             end = '\r'
                             )
 
@@ -553,11 +613,13 @@ def _main(
 
                         continue
 
-                    print_basic()
-
-
 
 def main():
+
+    df = DF().pull_csv(
+        ignore_validation = True,
+        from_url = True
+        )
 
     parser = argparse.ArgumentParser(
         description = 'Retrieve Student Details from any given details',
@@ -567,14 +629,20 @@ def main():
 
             $ mystalker
 
+            Tips:
             For faster searching, you can use the following options:
 
-            $ mystalker --digit-start=0 --digit-stop=3000
+            $ mystalker --digit-stop 3000
+
+            Note for last 4 digits information:
+            Person born prior and in the year 1999 will have the number started with 5## or 6## or 7## while a person born after and in the year 2000 will have the number started with 0##
 
             See where is the data stored:
 
             $ mystalker --where
 
+            If you don't know what is your STATE CODE or SCHOOL CODE, please refer to the following link:
+            https://github.com/LynBean/MyStalker/blob/main/Example%20Database/DataBase.csv
 
             '''
             ),
@@ -582,19 +650,31 @@ def main():
         )
 
     parser.add_argument(
+        '-v',
         '--version',
         action = 'version',
         version = '%(prog)s {0}'.format(get_version())
         )
     parser.add_argument(
-        '-p',
+        '-w',
+        '--where',
+        help = 'Show where is the data stored',
+        action = 'store_true',
+        default = False
+    )
+    parser.add_argument(
         '--print-flush',
         help = 'Whether to forcibly flush the stream',
         action = 'store_true',
         default = False
         )
     parser.add_argument(
-        '-f',
+        '--instant-start',
+        help = 'Skip the menu and start immediately',
+        action = 'store_true',
+        default = False
+        )
+    parser.add_argument(
         '--tabulate-format',
         help = 'The format to use for tabulating the data',
         metavar = 'FORMAT',
@@ -603,7 +683,6 @@ def main():
         default = 'psql'
         )
     parser.add_argument(
-        '-d',
         '--database-validate-days',
         help = 'How many days can a DataBase.csv be valid, If 7, it will get update if exceeds 7 days count from the last update',
         metavar = 'DAYS',
@@ -611,7 +690,6 @@ def main():
         default = 7
         )
     parser.add_argument(
-        '-s',
         '--digit-start',
         help = 'Generate NRIC last 4 digits start from this number',
         metavar = 'INTEGER',
@@ -620,7 +698,6 @@ def main():
         default = 0
     )
     parser.add_argument(
-        '-e',
         '--digit-stop',
         help = 'Generate NRIC last 4 digits stop at this number',
         metavar = 'INTEGER',
@@ -629,11 +706,50 @@ def main():
         default = 10000
     )
     parser.add_argument(
-        '-w',
-        '--where',
-        help = 'Show where is the data stored',
-        action = 'store_true',
-        default = False
+        '--cl-state-code',
+        help = 'State Code of the State where the student is living currently',
+        metavar = 'CODE',
+        type = str,
+        choices = [x for x in df['State Code'].values],
+    )
+    parser.add_argument(
+        '--b-state-code',
+        help = 'State Code of the State where the student is born',
+        metavar = 'CODE',
+        type = str,
+        choices = [x for x in df['State Code'].values],
+    )
+    parser.add_argument(
+        '--school-code',
+        help = 'School Code of the School',
+        metavar = 'CODE',
+        type = str.upper,
+        choices = [x for x in df['School Code'].values],
+    )
+    parser.add_argument(
+        '--birth-date',
+        help = 'Birth Date of the Student',
+        metavar = 'YYMMDD',
+        type = lambda x: valid_date(x, is_argparse = True),
+    )
+    parser.add_argument(
+        '--birth-date-start',
+        help = 'Start date of a looping birth date',
+        metavar = 'YYMMDD',
+        type = lambda x: valid_date(x, is_argparse = True),
+    )
+    parser.add_argument(
+        '--birth-date-end',
+        help = 'End date of a looping birth date',
+        metavar = 'YYMMDD',
+        type = lambda x: valid_date(x, is_argparse = True),
+    )
+    parser.add_argument(
+        '--gender',
+        help = 'Gender of the Student',
+        metavar = 'GENDER',
+        choices = ['MALE', 'FEMALE'],
+        type = str.upper,
     )
 
     args = parser.parse_args()
@@ -650,23 +766,37 @@ def main():
         finally:
             sys.exit(0)
 
+
     try:
         _main(
             print_flush = args.print_flush,
             tabulate_format = args.tabulate_format,
             database_validate_days = args.database_validate_days,
+            instant_start = args.instant_start,
             digit_start = args.digit_start,
-            digit_stop = args.digit_stop
+            digit_stop = args.digit_stop,
+            b_state_code = args.b_state_code,
+            cl_state_code = args.cl_state_code,
+            school_code = args.school_code,
+            birth_date = args.birth_date,
+            birth_date_start = args.birth_date_start,
+            birth_date_end = args.birth_date_end,
+            gender = args.gender,
         )
+
         cls()
         print(tabulate(df_valid_student), end = '\n\n')
 
     except KeyboardInterrupt:
         cls()
+        try: print(tabulate(df_valid_student), end = '\n\n')
+        except: pass
         print('\n\tInterrupted by user')
 
     except Exception:
         cls()
+        try: print(tabulate(df_valid_student), end = '\n\n')
+        except: pass
         print(traceback.format_exc())
 
     finally:
@@ -681,8 +811,3 @@ def main():
             )
 
         input('\n\t>ENTER<\n\t' + Style.RESET_ALL)
-        
-
-
-if __name__ == '__main__':
-    main()

@@ -1,8 +1,10 @@
 
-import socket
-import requests
-import urllib3
 import http
+import socket
+import urllib3
+
+from requests import exceptions as requests_exceptions
+from urllib3 import exceptions as urllib3_exceptions
 
 
 BASE_URL = 'https://sapsnkra.moe.gov.my/'
@@ -18,17 +20,17 @@ USER_AGENT = {
     }
 
 NETWORK_ERROR_EXCEPTIONS = (
-    requests.exceptions.ReadTimeout,
-    requests.exceptions.ConnectTimeout,
-    requests.exceptions.ConnectionError,
-    urllib3.exceptions.ConnectTimeoutError,
-    urllib3.exceptions.NewConnectionError,
-    urllib3.exceptions.ReadTimeoutError,
-    urllib3.exceptions.MaxRetryError,
-    http.client.RemoteDisconnected,
-    socket.gaierror,
     ConnectionRefusedError,
-    TimeoutError
+    http.client.RemoteDisconnected,
+    requests_exceptions.ConnectionError,
+    requests_exceptions.ConnectTimeout,
+    requests_exceptions.ReadTimeout,
+    socket.gaierror,
+    TimeoutError,
+    urllib3_exceptions.ConnectTimeoutError,
+    urllib3_exceptions.MaxRetryError,
+    urllib3_exceptions.NewConnectionError,
+    urllib3_exceptions.ReadTimeoutError
     )
 
 
