@@ -62,7 +62,7 @@ mystalker --where
 -----
 
 ```
-Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER]
+Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER] [--debug]
 
 Retrieve Student Details from any given details
 
@@ -104,6 +104,8 @@ Options:
                         End date of a looping birth date
 
   --gender GENDER       Gender of the Student
+
+  --debug               Enable Debug Mode
 
 
 How to start:

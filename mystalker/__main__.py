@@ -333,6 +333,7 @@ def _main(
     birth_date_start: str = None,
     birth_date_end: str = None,
     gender: str = None,
+    debug: bool = False
     ) -> None:
 
 
@@ -550,17 +551,30 @@ def _main(
 
             print_header()
 
+            debug_exec_time = '0'
             for digit in digits:
+                
+                if debug is True:
+                    debug_start_time = time.time()
 
                 current_progress += 1
                 percentage_progress = str(round(current_progress / total_progress * 100, 4)) + '%'
 
                 width_terminal = os.get_terminal_size().columns
-                spaces = width_terminal - len(percentage_progress) - 38 - 30
-                current_progress_line = '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
+                
+                def debug_exec_line() -> str:
+                    if debug is True: return str(Back.CYAN + Fore.BLACK + ' (Exec Time: ' + debug_exec_time + ') ' + Back.BLUE + Fore.BLACK)
+                    else : return ''
+                    
+                spaces = width_terminal - len(percentage_progress) - len(debug_exec_line()) - 38 - 30
+                
+                def current_progress_line(
+                    print_exec_line = True
+                ) -> str:
+                    return str('\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' + (debug_exec_line() if print_exec_line is True else '') + ' ' * spaces + Style.RESET_ALL)
 
                 print(
-                    current_progress_line,
+                    current_progress_line(),
                     end = '\r'
                     )
 
@@ -569,6 +583,10 @@ def _main(
                     state_code = b_state_code,
                     digit = digit
                     )
+                
+                if debug is True:
+                    debug_end_time = time.time()
+                    debug_exec_time = str(round(debug_end_time - debug_start_time, 4)) + 's'
 
                 if response is False:
                     continue
@@ -589,9 +607,10 @@ def _main(
 
                     print_header_advanced()
                     print(
-                        current_progress_line
+                        current_progress_line(
+                            print_exec_line = False
+                        )
                     )
-
 
                     # Initiate School Code Variable
                     if user_provide_school is False:
@@ -604,14 +623,17 @@ def _main(
 
                     current_school_index = 0
                     for school_code in df_school_code:
+                        
+                        if debug is True: debug_start_time = time.time()
+                        
                         current_school_index += 1
                         school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
                         length_string = len(str(current_school_index) + length_school + school_code + school_name) + (5 if length_school != '1' else -2)
                         width_terminal = os.get_terminal_size().columns
-                        spaces = width_terminal - length_string - 30
+                        spaces = width_terminal - length_string - len(debug_exec_line()) - 30
 
                         print(
-                            '\t' + ((Back.BLACK + Fore.WHITE + ' (' + str(current_school_index) + '/' + length_school + ') ') if length_school != '1' else '') + Back.YELLOW + Fore.BLACK + ' ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' ' * spaces + Style.RESET_ALL,
+                            '\t' + ((Back.BLACK + Fore.WHITE + ' (' + str(current_school_index) + '/' + length_school + ') ') if length_school != '1' else '') + Back.YELLOW + Fore.BLACK + ' ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' ' + debug_exec_line() + ' ' * spaces + Style.RESET_ALL,
                             end = '\r'
                             )
 
@@ -621,6 +643,10 @@ def _main(
                             digit = digit,
                             school_code = school_code
                             )
+                        
+                        if debug is True:
+                            debug_end_time = time.time()
+                            debug_exec_time = str(round(debug_end_time - debug_start_time, 4)) + 's'
 
                         if response is False:
                             continue
@@ -644,14 +670,16 @@ def _main(
 
                         print_header_advanced()
                         print(
-                            current_progress_line,
+                            current_progress_line(
+                                print_exec_line = False
+                            )
                         )
 
                         continue
 
                 print_header()
                 print(
-                    current_progress_line,
+                    current_progress_line(),
                     end = '\r'
                 )
 
@@ -813,6 +841,12 @@ def main():
         choices = ['MALE', 'FEMALE'],
         type = str.upper,
     )
+    parser.add_argument(
+        '--debug',
+        help = 'Enable Debug Mode',
+        action = 'store_true',
+        default = False
+    )
 
     args = parser.parse_args()
 
@@ -844,6 +878,7 @@ def main():
             birth_date_start = args.birth_date_start,
             birth_date_end = args.birth_date_end,
             gender = args.gender,
+            debug = args.debug
         )
 
         cls()
