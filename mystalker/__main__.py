@@ -516,14 +516,42 @@ def _main(
     current_progress = 0
     for b_state_code in df_b_state_code:
         for date_birth in list_date_birth:
+            
+            cls()
+            print(
+                tabulate(
+                    df_valid_student,
+                    ),
+                '',
+                Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0] + '\n' + Style.RESET_ALL
+            )
+            
             for digit in digits:
 
                 current_progress += 1
                 total_progress = len(df_b_state_code) * len(list_date_birth) * len(digits)
-                percentage_progress = str(round(current_progress / total_progress * 100, 3)) + '%'
+                percentage_progress = str(round(current_progress / total_progress * 100, 4)) + '%'
+                
+                width_terminal = os.get_terminal_size().columns
+                spaces = width_terminal - len(percentage_progress) - 38 - 30
+                current_progress_line = '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
+
+                print(
+                    current_progress_line,
+                    end = '\r'
+                    )
+
+                response = nric_valid(
+                    date_birth = date_birth,
+                    state_code = b_state_code,
+                    digit = digit
+                    )
+
+                if response is False:
+                    continue
 
                 for cl_state_code in df_cl_state_code:
-
+    
                     def print_basic():
                         cls()
                         print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n' + Style.RESET_ALL)
@@ -537,24 +565,10 @@ def _main(
                         )
 
                     print_basic()
-
-                    width_terminal = os.get_terminal_size().columns
-                    spaces = width_terminal - len(percentage_progress) - 38 - 30
-                    current_progress_line = '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
-
                     print(
-                        current_progress_line,
-                        end = '\r'
-                        )
+                        current_progress_line
+                    )
 
-                    response = nric_valid(
-                        date_birth = date_birth,
-                        state_code = b_state_code,
-                        digit = digit
-                        )
-
-                    if response is False:
-                        break
 
                     # Initiate School Code Variable
                     if user_provide_school is False:
@@ -565,7 +579,6 @@ def _main(
                         df_school_code = [school_code]
                         length_school = '1'
 
-                    print()
                     current_school_index = 0
                     for school_code in df_school_code:
                         current_school_index += 1
@@ -612,6 +625,12 @@ def _main(
                         )
 
                         continue
+                    
+                print_basic()
+                print(
+                    current_progress_line,
+                    end = '\r'
+                )
 
 
 def main():
