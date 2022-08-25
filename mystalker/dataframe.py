@@ -110,9 +110,9 @@ class DataFrame:
                 ).drop_duplicates()
 
         if file_name == 'DataBase.csv':
-            dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'], inplace = True)
-        if file_name == 'Students_Details.csv':
-            dataframe.sort_values(by = ['Student NRIC'], inplace = True)
+            dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'])
+        if file_name == 'Student_Details.csv':
+            dataframe.sort_values(by = ['State Code', 'Student Name'])
 
         while True:
             try:

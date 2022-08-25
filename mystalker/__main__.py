@@ -444,13 +444,13 @@ def _main(
 
                 while True:
                     start_date = input(Back.RED + Fore.BLACK + '\n\t Enter a starting date (default: 000101)(You may leave it blank): ' + Style.RESET_ALL)
-                    if valid_date(start_date) is True:
+                    if valid_date(start_date) is True or start_date == '':
                         break
                     print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
 
                 while True:
                     end_date = input(Back.RED + Fore.BLACK + '\n\t Enter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
-                    if valid_date(end_date) is True:
+                    if valid_date(end_date) is True or end_date == '':
                         break
                     print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
 
@@ -514,24 +514,27 @@ def _main(
     #                           MAIN
 
     current_progress = 0
+    total_progress = len(df_b_state_code) * len(list_date_birth) * len(digits)
     for b_state_code in df_b_state_code:
         for date_birth in list_date_birth:
-            
-            cls()
-            print(
-                tabulate(
-                    df_valid_student,
-                    ),
-                '',
-                Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0] + '\n' + Style.RESET_ALL
-            )
-            
+
+            def print_header():
+                cls()
+                print(
+                    tabulate(
+                        df_valid_student,
+                        ),
+                    '',
+                    Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == b_state_code]['State Name'].values[0] + '\n' + Style.RESET_ALL
+                )
+
+            print_header()
+
             for digit in digits:
 
                 current_progress += 1
-                total_progress = len(df_b_state_code) * len(list_date_birth) * len(digits)
                 percentage_progress = str(round(current_progress / total_progress * 100, 4)) + '%'
-                
+
                 width_terminal = os.get_terminal_size().columns
                 spaces = width_terminal - len(percentage_progress) - 38 - 30
                 current_progress_line = '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK + ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + b_state_code + digit + ' ' * spaces + Style.RESET_ALL
@@ -551,8 +554,8 @@ def _main(
                     continue
 
                 for cl_state_code in df_cl_state_code:
-    
-                    def print_basic():
+
+                    def print_header_advanced():
                         cls()
                         print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cl_state_code]['State Name'].values[0] + '\n') if user_provide_school is False else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n' + Style.RESET_ALL)
                         print(
@@ -564,7 +567,7 @@ def _main(
                             print_state_or_school
                         )
 
-                    print_basic()
+                    print_header_advanced()
                     print(
                         current_progress_line
                     )
@@ -619,14 +622,14 @@ def _main(
                             file_name = 'Student_Details.csv'
                             )
 
-                        print_basic()
+                        print_header_advanced()
                         print(
                             current_progress_line,
                         )
 
                         continue
-                    
-                print_basic()
+
+                print_header()
                 print(
                     current_progress_line,
                     end = '\r'
@@ -708,42 +711,62 @@ def main():
         type = int,
         default = 7
         )
+
+    def valid_int(value):
+        try:
+            if int(value) not in range(0, 10000):
+                raise ValueError
+
+            return int(value)
+
+        except ValueError:
+            raise argparse.ArgumentTypeError('Integer must between 0 and 10000')
+
     parser.add_argument(
         '--digit-start',
         help = 'Generate NRIC last 4 digits start from this number',
         metavar = 'INTEGER',
-        type = int,
-        choices = range(0, 10000),
+        type = valid_int,
         default = 0
     )
     parser.add_argument(
         '--digit-stop',
         help = 'Generate NRIC last 4 digits stop at this number',
         metavar = 'INTEGER',
-        type = int,
-        choices = range(0, 10000),
+        type = valid_int,
         default = 10000
     )
+
+    def valid_state_code(code):
+        if code not in df['State Code'].values:
+            raise argparse.ArgumentTypeError('Invalid State Code, please refer to https://github.com/LynBean/MyStalker/blob/main/Example%20Database/DataBase.csv')
+
+        return code
+
     parser.add_argument(
         '--cl-state-code',
         help = 'State Code of the State where the student is living currently',
         metavar = 'CODE',
-        type = str,
-        choices = [x for x in df['State Code'].values],
+        type = valid_state_code
     )
     parser.add_argument(
         '--b-state-code',
         help = 'State Code of the State where the student is born',
         metavar = 'CODE',
-        type = str,
-        choices = [x for x in df['State Code'].values],
+        type = valid_state_code
     )
+
+    def valid_school_code(code):
+        if code.upper() not in df['School Code'].values:
+            raise argparse.ArgumentTypeError('Invalid School Code, please refer to https://github.com/LynBean/MyStalker/blob/main/Example%20Database/DataBase.csv')
+
+        return code.upper()
+
     parser.add_argument(
         '--school-code',
         help = 'School Code of the School',
         metavar = 'CODE',
-        type = str.upper,
-        choices = [x for x in df['School Code'].values],
+        type = valid_school_code
     )
     parser.add_argument(
         '--birth-date',
