@@ -185,12 +185,17 @@ def nric_valid(
                     state_code,
                     digit
                     ),
-                verify = False
+                verify = False,
+                timeout = 5
                 )
             if html_response.status_code == 200:
                 break
-        except NETWORK_ERROR_EXCEPTIONS:
-            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+        except NETWORK_ERROR_EXCEPTIONS as err:
+            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(randint(1, 5))
+            continue
+        except Exception as err:
+            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
             time.sleep(randint(1, 5))
             continue
 
@@ -210,12 +215,17 @@ def nric_valid(
                     digit,
                     school_code
                     ),
-                verify = False
+                verify = False,
+                timeout = 5
                 )
             if html_response.status_code == 200:
                 break
-        except NETWORK_ERROR_EXCEPTIONS:
-            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+        except NETWORK_ERROR_EXCEPTIONS as err:
+            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(randint(1, 5))
+            continue
+        except Exception as err:
+            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
             time.sleep(randint(1, 5))
             continue
 
@@ -245,12 +255,17 @@ def retrieve_details(
                     digit,
                     school_code
                     ),
-                verify = False
+                verify = False,
+                timeout = 5
                 )
             if html_response.status_code == 200:
                 break
-        except NETWORK_ERROR_EXCEPTIONS:
-            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+        except NETWORK_ERROR_EXCEPTIONS as err:
+            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(randint(1, 5))
+            continue
+        except Exception as err:
+            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
             time.sleep(randint(1, 5))
             continue
 
@@ -261,12 +276,17 @@ def retrieve_details(
         try:
             html_response = session.get(
                 IBUBAPA_SEMAK_URL,
-                verify = False
+                verify = False,
+                timeout = 5
             )
             if html_response.status_code == 200:
                 break
-        except NETWORK_ERROR_EXCEPTIONS:
-            print(Back.YELLOW + Fore.BLACK + '\t ConnectionTimeout: Retrying ... ' + Style.RESET_ALL, end = '\r')
+        except NETWORK_ERROR_EXCEPTIONS as err:
+            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
+            time.sleep(randint(1, 5))
+            continue
+        except Exception as err:
+            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
             time.sleep(randint(1, 5))
             continue
 

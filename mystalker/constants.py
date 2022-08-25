@@ -1,19 +1,17 @@
 
 import http
+import requests.exceptions
 import socket
-import urllib3
-
-from requests import exceptions as requests_exceptions
-from urllib3 import exceptions as urllib3_exceptions
+import urllib3.exceptions
 
 
 BASE_URL = 'https://sapsnkra.moe.gov.my/'
-PAPAR_CARIAN_URL = BASE_URL + 'ajax/papar_carian.php'
-PAPAR_CARIAN_PELAJAR_URL = BASE_URL + 'ajax/papar_carianpelajar.php'
-SENARAI_PPD_URL = BASE_URL + 'ajax/senarai_ppd.php'
-SENARAI_SEKOLAH_URL = BASE_URL + 'ajax/ddl_senarai_sekolah.php'
 IBUBAPA_MAIN_URL = BASE_URL + 'ibubapa2/indexv2.php'
 IBUBAPA_SEMAK_URL = BASE_URL + 'ibubapa2/semak.php'
+PAPAR_CARIAN_PELAJAR_URL = BASE_URL + 'ajax/papar_carianpelajar.php'
+PAPAR_CARIAN_URL = BASE_URL + 'ajax/papar_carian.php'
+SENARAI_PPD_URL = BASE_URL + 'ajax/senarai_ppd.php'
+SENARAI_SEKOLAH_URL = BASE_URL + 'ajax/ddl_senarai_sekolah.php'
 
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
@@ -21,16 +19,86 @@ USER_AGENT = {
 
 NETWORK_ERROR_EXCEPTIONS = (
     ConnectionRefusedError,
+    http.client.BadStatusLine,
+    http.client.CannotSendHeader,
+    http.client.CannotSendRequest,
+    http.client.HTTPException,
+    http.client.ImproperConnectionState,
+    http.client.IncompleteRead,
+    http.client.InvalidURL,
+    http.client.LineTooLong,
+    http.client.LineTooLong,
+    http.client.NotConnected,
     http.client.RemoteDisconnected,
-    requests_exceptions.ConnectionError,
-    requests_exceptions.ConnectTimeout,
-    requests_exceptions.ReadTimeout,
+    http.client.ResponseNotReady,
+    http.client.UnimplementedFileMode,
+    http.client.UnimplementedFileMode,
+    http.client.UnknownProtocol,
+    http.client.UnknownTransferEncoding,
+    requests.exceptions.ChunkedEncodingError,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ContentDecodingError,
+    requests.exceptions.FileModeWarning,
+    requests.exceptions.HTTPError,
+    requests.exceptions.InvalidHeader,
+    requests.exceptions.InvalidJSONError,
+    requests.exceptions.InvalidProxyURL,
+    requests.exceptions.InvalidSchema,
+    requests.exceptions.InvalidURL,
+    requests.exceptions.JSONDecodeError,
+    requests.exceptions.MissingSchema,
+    requests.exceptions.ProxyError,
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.RequestException,
+    requests.exceptions.RequestsDependencyWarning,
+    requests.exceptions.RequestsWarning,
+    requests.exceptions.RetryError,
+    requests.exceptions.SSLError,
+    requests.exceptions.StreamConsumedError,
+    requests.exceptions.Timeout,
+    requests.exceptions.TooManyRedirects,
+    requests.exceptions.UnrewindableBodyError,
+    requests.exceptions.URLRequired,
     socket.gaierror,
     TimeoutError,
-    urllib3_exceptions.ConnectTimeoutError,
-    urllib3_exceptions.MaxRetryError,
-    urllib3_exceptions.NewConnectionError,
-    urllib3_exceptions.ReadTimeoutError
+    urllib3.exceptions.BodyNotHttplibCompatible,
+    urllib3.exceptions.ClosedPoolError,
+    urllib3.exceptions.ConnectTimeoutError,
+    urllib3.exceptions.DecodeError,
+    urllib3.exceptions.DependencyWarning,
+    urllib3.exceptions.EmptyPoolError,
+    # urllib3.exceptions.FullPoolError,
+    urllib3.exceptions.HeaderParsingError,
+    urllib3.exceptions.HostChangedError,
+    urllib3.exceptions.HTTPError,
+    urllib3.exceptions.HTTPWarning,
+    urllib3.exceptions.IncompleteRead,
+    urllib3.exceptions.InsecurePlatformWarning,
+    urllib3.exceptions.InsecureRequestWarning,
+    urllib3.exceptions.InvalidChunkLength,
+    urllib3.exceptions.InvalidHeader,
+    urllib3.exceptions.LocationParseError,
+    urllib3.exceptions.LocationValueError,
+    urllib3.exceptions.MaxRetryError,
+    # urllib3.exceptions.NameResolutionError,
+    urllib3.exceptions.NewConnectionError,
+    urllib3.exceptions.PoolError,
+    urllib3.exceptions.ProtocolError,
+    urllib3.exceptions.ProxyError,
+    urllib3.exceptions.ProxySchemeUnknown,
+    urllib3.exceptions.ProxySchemeUnsupported,
+    urllib3.exceptions.ReadTimeoutError,
+    urllib3.exceptions.RequestError,
+    urllib3.exceptions.ResponseError,
+    urllib3.exceptions.ResponseNotChunked,
+    urllib3.exceptions.SecurityWarning,
+    urllib3.exceptions.SSLError,
+    urllib3.exceptions.SystemTimeWarning,
+    urllib3.exceptions.TimeoutError,
+    urllib3.exceptions.TimeoutStateError,
+    urllib3.exceptions.UnrewindableBodyError,
+    urllib3.exceptions.URLSchemeUnknown
     )
 
 

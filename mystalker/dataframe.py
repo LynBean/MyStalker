@@ -112,7 +112,7 @@ class DataFrame:
         if file_name == 'DataBase.csv':
             dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'])
         if file_name == 'Student_Details.csv':
-            dataframe.sort_values(by = ['State Code', 'Student Name'])
+            dataframe.sort_values(by = ['State Code', 'Student Name', 'Student NRIC'])
 
         while True:
             try:
@@ -121,8 +121,8 @@ class DataFrame:
                     index = False
                     )
                 break
-            except PermissionError:
-                print(Back.RED + Fore.BLACK + '\t PermissionError: Retrying ... (Kindly check if ' + file_name + ' is opening, kindly close it / or run this script as Administrator) ' + Style.RESET_ALL, end = '\r')
+            except Exception as err:
+                print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... (Kindly check if ' + file_name + ' is opening, kindly close it / or run this script as Administrator) ' + Style.RESET_ALL, end = '\r')
                 time.sleep(randint(1, 5))
                 continue
 

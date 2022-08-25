@@ -33,7 +33,8 @@ class District(object):
                         SENARAI_PPD_URL,
                         state_code
                         ),
-                    verify = False
+                    verify = False,
+                    timeout = 5
                     )
                 if html_response.status_code == 200:
                     break

@@ -28,7 +28,8 @@ class State:
             try:
                 html_response = session.get(
                     IBUBAPA_MAIN_URL,
-                    verify = False
+                    verify = False,
+                    timeout = 5
                     )
                 if html_response.status_code == 200:
                     break
