@@ -18,7 +18,7 @@
 ```bash
 pip install 'git+https://github.com/LynBean/MyStalker@main'
 ```
-
+*If you met installation error, or the program cannot be called after installation succeeded, you may try to reinstall the package but using administrator terminal*
 ### To update MyStalker
 
 ```bash
