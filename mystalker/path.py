@@ -2,7 +2,15 @@
 # For more information, see https://github.com/platformdirs/platformdirs
 
 import os
-from platformdirs import user_data_dir, user_config_dir, user_cache_dir, site_data_dir, site_config_dir, user_log_dir, user_documents_dir, user_runtime_dir
+
+from platformdirs import site_config_dir
+from platformdirs import site_data_dir
+from platformdirs import user_cache_dir
+from platformdirs import user_config_dir
+from platformdirs import user_data_dir
+from platformdirs import user_documents_dir
+from platformdirs import user_log_dir
+from platformdirs import user_runtime_dir
 
 
 class Path:

@@ -6,65 +6,61 @@ import sys
 from setuptools import setup
 
 
-if sys.version_info < (3, 3):
-    sys.exit('Requiring Python >= 3.3')
+if sys.version_info.major < 3 or sys.version_info.minor < 10:
+    sys.exit("Requiring Python >= 3.10")
 
-with open('README.md', 'r', encoding = 'UTF-8') as README :
+with open("README.md", "r", encoding = "UTF-8") as README :
     LongDescription = README.read()
 
 def get_version():
     SRC = os.path.abspath(os.path.dirname(__file__))
-    PATH = os.path.join(SRC, 'mystalker/__init__.py')
+    PATH = os.path.join(SRC, "mystalker/__init__.py")
 
-    with open(PATH, encoding = 'UTF-8') as f:
+    with open(PATH, encoding = "UTF-8") as f:
         for line in f:
             m = re.match("__version__ = '(.*)'", line)
             if m:
                 return m.group(1)
-    raise SystemExit('Could not find version string.')
+
+    raise SystemExit("Could not find version string.")
 
 
 setup(
-    name = 'MyStalker',
+    name = "mystalker",
     version = get_version(),
     description = "Get your friend's NRIC number with this program.",
-    author = 'Asuna',
-    author_email = '2003victoryy@1utar.my',
-    url = 'https://github.com/LynBean/MyStalker',
-    license = 'GPL-3.0',
-    packages = ['mystalker'],
+    author = "LynBean",
+    author_email = "kim.is.fighting@gmail.com",
+    url = "https://github.com/LynBean/MyStalker",
+    license = "GPL-3.0",
+    packages = ["mystalker"],
     zip_safe = False,
-    python_requires = '>=3.5',
+    python_requires = ">=3.5",
     install_requires = [
-        'argparse',
-        'bs4',
-        'colorama',
-        'lxml',
-        'pandas',
-        'platformdirs',
-        'requests',
-        'tabulate',
-        'urllib3',
-        ],
+        "argparse",
+        "bs4",
+        "colorama",
+        "lxml",
+        "pandas",
+        "platformdirs",
+        "requests",
+        "tabulate",
+        "urllib3",
+    ],
     entry_points = {
-        'console_scripts': [
-            'mystalker = mystalker.__main__: main'
-            ],
+        "console_scripts": [
+            "mystalker = mystalker.__main__: main"
+        ],
     },
     classifiers = [
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-        'Environment :: Console',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3 :: Only',
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+        "Environment :: Console",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3 :: Only",
     ],
     keywords = (
-        ['malaysia', 'malaysia-nric', 'malaysia-stalker', 'sapsnkra.moe.gov.my']
+        ["malaysia", "malaysia-nric", "malaysia-stalker", "sapsnkra.moe.gov.my"]
     ),
     long_description = LongDescription,
-    long_description_content_type = 'text/markdown',
+    long_description_content_type = "text/markdown",
 )

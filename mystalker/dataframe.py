@@ -1,17 +1,23 @@
 
 import os
-import pandas as pd
-import requests
 import time
-
-from colorama import Fore, Back, Style
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from random import randint
 
-from .path import Path
-from .state import State
+import pandas as pd
+import requests
+from colorama import Back
+from colorama import Fore
+from colorama import Style
+
+from .constants import DATABASE_FILENAME
+from .constants import DATABASE_URL
+from .constants import STUDENT_DETAILS_FILENAME
 from .district import District
+from .path import Path
 from .school import School
+from .state import State
 
 PATH = Path().user_data_dir
 
@@ -22,7 +28,7 @@ class DataFrame:
 
     def pull_csv(
         self,
-        file_name: str = 'DataBase.csv',
+        file_name: str = DATABASE_FILENAME,
         dtype: type = str,
         ignore_validation: bool = False,
         days_ago: int = 1,
@@ -36,7 +42,7 @@ class DataFrame:
 
             if (datetime.utcfromtimestamp(os.path.getmtime(FULL_PATH)) < datetime.utcnow() - timedelta(days = days_ago)
                 and ignore_validation is False
-                and file_name == 'DataBase.csv'
+                and file_name == DATABASE_FILENAME
                 ):
                 self.pull_latest_database(
                     push_csv = True
@@ -57,11 +63,10 @@ class DataFrame:
 
         except (FileNotFoundError, pd.errors.EmptyDataError):
 
-            if file_name == 'DataBase.csv':
+            if file_name == DATABASE_FILENAME:
 
                 if from_url is True:
-                    URL = 'https://raw.githubusercontent.com/LynBean/MyStalker/main/Example%20Database/DataBase.csv'
-                    html_response = requests.get(URL)
+                    html_response = requests.get(DATABASE_URL)
                     with open (FULL_PATH, 'w+') as f:
                         f.write(html_response.text)
 
@@ -98,7 +103,7 @@ class DataFrame:
         '''Push dataframe to csv file.
         '''
 
-        if concat is True and file_name != 'DataBase.csv':
+        if concat is True and file_name != DATABASE_FILENAME:
             old_df = self.pull_csv(
                 file_name = file_name,
                 )
@@ -109,10 +114,10 @@ class DataFrame:
                 ignore_index = True,
                 ).drop_duplicates()
 
-        if file_name == 'DataBase.csv':
-            dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'])
-        if file_name == 'Student_Details.csv':
-            dataframe.sort_values(by = ['State Code', 'Student Name', 'Student NRIC'])
+        if file_name == DATABASE_FILENAME:
+            dataframe = dataframe.sort_values(by = ['State Code', 'District Code', 'School Code'])
+        if file_name == STUDENT_DETAILS_FILENAME:
+            dataframe = dataframe.sort_values(by = ['Student Name', 'Student NRIC', 'State Code'])
 
         while True:
             try:
@@ -159,6 +164,6 @@ class DataFrame:
                     df = pd.concat([df, df_temp])
 
         if push_csv is True:
-            self.push_csv(df, 'DataBase.csv')
+            self.push_csv(df, DATABASE_FILENAME)
 
         return df

@@ -1,17 +1,16 @@
-
 # Only for Malaysian
 
 [![LICENSE](https://img.shields.io/github/license/LynBean/MyStalker?label=LICENSE)](https://github.com/LynBean/MyStalker/blob/main/LICENSE)
 
 `mystalker` is a command-line application written in Python that can retrieve students details such as NRIC, Student Name and others.
 
-##### *Use responsibly. For Educational Purposes Only*
+##### _Use responsibly. For Educational Purposes Only_
 
 ## Install
 
--------
+---
 
-**Only for Python version >= 3.3**
+**Only for Python version >= 3.10**
 
 ### To install MyStalker
 
@@ -27,7 +26,7 @@ pip install 'git+https://github.com/LynBean/MyStalker@main' --upgrade
 
 ### Alternatively, you can clone the project and run the following command to install
 
-Make sure you cd into the *MyStalker-main* folder before performing the command below.
+Make sure you cd into the _MyStalker-main_ folder before performing the command below.
 
 ```bash
 pip install .
@@ -35,7 +34,7 @@ pip install .
 
 ## Usage
 
------
+---
 
 ### Simply Start
 
@@ -59,10 +58,10 @@ mystalker --where
 
 ## Options
 
------
+---
 
 ```
-Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER] [--debug]
+Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER] [--debug] [-c] [-r PATH]
 
 Retrieve Student Details from any given details
 
@@ -82,7 +81,7 @@ Options:
                         The format to use for tabulating the data
 
   --database-validate-days DAYS
-                        How many days can a DataBase.csv be valid, If 7, it will get update if exceeds 7 days count from the last update
+                        How many days can a database.csv be valid, If 7, it will get update if exceeds 7 days count from the last update
 
   --digit-start INTEGER
                         Generate NRIC last 4 digits start from this number
@@ -107,6 +106,12 @@ Options:
 
   --debug               Enable Debug Mode
 
+  -c, --enable-checkpoint
+                        Will save the current progress to a checkpoint file, resume from the checkpoint file using --resume-checkpoint <path>
+
+  -r PATH, --resume-checkpoint PATH
+                        Resume from a checkpoint file, will override any value provided in the command line
+
 
 How to start:
 
@@ -125,5 +130,5 @@ See where is the data stored:
 $ mystalker --where
 
 If you don't know what is your STATE CODE or SCHOOL CODE, please refer to the following link:
-https://github.com/LynBean/MyStalker/blob/main/Example%20Database/DataBase.csv
+https://github.com/LynBean/MyStalker/blob/main/database.csv
 ```

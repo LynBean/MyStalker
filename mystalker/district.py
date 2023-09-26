@@ -1,8 +1,8 @@
 
-import requests
 import time
-import urllib3
 
+import requests
+import urllib3
 from bs4 import BeautifulSoup as bs
 
 from .constants import *

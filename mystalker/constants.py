@@ -1,9 +1,25 @@
 
 import http
-import requests.exceptions
 import socket
+
+import requests.exceptions
 import urllib3.exceptions
 
+CONFIG_DIGIT_START = 0
+CONFIG_DIGIT_STOP = 10000
+CONFIG_SCHOOL_CODE = None
+CONFIG_B_STATE_CODE = None
+CONFIG_CL_STATE_CODE = None
+CONFIG_BIRTH_DATE = None
+CONFIG_BIRTH_DATE_START = None
+CONFIG_BIRTH_DATE_END = None
+CONFIG_GENDER = None
+
+CHECKPOINT_FILENAME = 'mystalker.checkpoint'
+DATABASE_FILENAME = 'database.csv'
+GITHUB_URL = 'https://github.com/LynBean/MyStalker'
+DATABASE_URL = 'https://raw.githubusercontent.com/LynBean/MyStalker/main/database.csv'
+STUDENT_DETAILS_FILENAME = 'students.csv'
 
 BASE_URL = 'https://sapsnkra.moe.gov.my/'
 IBUBAPA_MAIN_URL = BASE_URL + 'ibubapa2/indexv2.php'
