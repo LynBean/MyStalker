@@ -15,13 +15,13 @@
 ### To install MyStalker
 
 ```bash
-pip install 'git+https://github.com/LynBean/MyStalker@main'
+pip install "git+https://github.com/LynBean/MyStalker@main"
 ```
 *If you met installation error, or the program cannot be called after installation succeeded, you may try to reinstall the package but using administrator terminal*
 ### To update MyStalker
 
 ```bash
-pip install 'git+https://github.com/LynBean/MyStalker@main' --upgrade
+pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
 ```
 
 ### Alternatively, you can clone the project and run the following command to install
@@ -47,7 +47,7 @@ mystalker
 If result not good for you, you can increase the range
 
 ```bash
-mystalker --digit-start=0 --digit-stop=3000
+mystalker --loop-digit-start=0 --loop-digit-stop=3000
 ```
 
 ### See where is the data stored
@@ -61,74 +61,48 @@ mystalker --where
 ---
 
 ```
-Usage: mystalker [-h] [-v] [-w] [--print-flush] [--instant-start] [--tabulate-format FORMAT] [--database-validate-days DAYS] [--digit-start INTEGER] [--digit-stop INTEGER] [--cl-state-code CODE] [--b-state-code CODE] [--school-code CODE] [--birth-date YYMMDD] [--birth-date-start YYMMDD] [--birth-date-end YYMMDD] [--gender GENDER] [--debug] [-c] [-r PATH]
+Usage: mystalker [-h] [-v] [-w] [--database-renew-interval DAYS] [--loop-digit-start DIGIT] [--loop-digit-stop DIGIT] [--birth-state-code STATE_CODE]
+                 [--current-living-state-code STATE_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD]
+                 [--gender GENDER] [-c] [-f FILEPATH]
 
-Retrieve Student Details from any given details
-
-Options:
-
+options:
   -h, --help            show this help message and exit
 
   -v, --version         show program's version number and exit
 
-  -w, --where           Show where is the data stored
+  -w, --where           Specify the directory to store the database.
 
-  --print-flush         Whether to forcibly flush the stream
+  --database-renew-interval DAYS
+                        Specify the database renew interval in days.
 
-  --instant-start       Skip the menu and start immediately
+  --loop-digit-start DIGIT
+                        Specify the starting range for digits.
 
-  --tabulate-format FORMAT
-                        The format to use for tabulating the data
+  --loop-digit-stop DIGIT
+                        Specify the stopping range for digits.
 
-  --database-validate-days DAYS
-                        How many days can a database.csv be valid, If 7, it will get update if exceeds 7 days count from the last update
+  --birth-state-code STATE_CODE
+                        Specify the state where the student was born.
 
-  --digit-start INTEGER
-                        Generate NRIC last 4 digits start from this number
+  --current-living-state-code STATE_CODE
+                        Specify the state where the student is currently living.
 
-  --digit-stop INTEGER  Generate NRIC last 4 digits stop at this number
+  --school-code SCHOOL_CODE
+                        Specify the school code.
 
-  --cl-state-code CODE  State Code of the State where the student is living currently
+  --birth-date YYMMDD   Specify the student's birth date in YYMMDD format.
 
-  --b-state-code CODE   State Code of the State where the student is born
+  --loop-birth-date-start YYMMDD
+                        Specify the starting range for birth date.
 
-  --school-code CODE    School Code of the School
+  --loop-birth-date-stop YYMMDD
+                        Specify the stopping range for birth date.
 
-  --birth-date YYMMDD   Birth Date of the Student
+  --gender GENDER       Specify the gender of the student.
 
-  --birth-date-start YYMMDD
-                        Start date of a looping birth date
+  -c, --checkpoint      Enable checkpoint resuming mechanism.
 
-  --birth-date-end YYMMDD
-                        End date of a looping birth date
+  -f FILEPATH, --checkpoint-file FILEPATH
+                        Specify the checkpoint filepath.
 
-  --gender GENDER       Gender of the Student
-
-  --debug               Enable Debug Mode
-
-  -c, --enable-checkpoint
-                        Will save the current progress to a checkpoint file, resume from the checkpoint file using --resume-checkpoint <path>
-
-  -r PATH, --resume-checkpoint PATH
-                        Resume from a checkpoint file, will override any value provided in the command line
-
-
-How to start:
-
-$ mystalker
-
-Tips:
-For faster searching, you can use the following options:
-
-$ mystalker --digit-stop 3000
-
-Note for last 4 digits information:
-Person born prior and in the year 1999 will have the number started with 5## or 6## or 7## while a person born after and in the year 2000 will have the number started with 0##
-
-See where is the data stored:
-
-$ mystalker --where
-
-If you don't know what is your STATE CODE or SCHOOL CODE, please refer to the following link:
-https://github.com/LynBean/MyStalker/blob/main/database.csv
 ```
