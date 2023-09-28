@@ -1,1050 +1,615 @@
 
 import argparse
-import functools
-import os
-import pickle
-import platform
-import re
-import sys
-import textwrap
-import threading
 import time
-import traceback
 from datetime import datetime
 from datetime import timedelta
-from pathlib import Path as PathLib
 from random import randint
+from typing import Callable
+from typing import Literal
+from typing import Optional
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup as bs
-from colorama import Back
-from colorama import Fore
-from colorama import Style
-from tabulate import tabulate
 
+from .checkpoint import Checkpoint
 from .constants import *
-from .dataframe import DataFrame as DF
-from .path import Path
+from .schools import get_data
+from .sessions import get_session
+from .students import Student
+from .students import append_student
+from .ui.window import Window
+from .utils import get_data_dir
 
-
-class Checkpoint:
-    def __init__(self, path: str = None):
-        if path is not None:
-            if not os.path.isabs(path):
-                path = os.path.join(os.getcwd(), path)
-
-            if not os.path.exists(path):
-                PathLib(path).touch(exist_ok=True)
-
-        self.path = path
-        self.data = {}
-        self.load()
-
-    @property
-    def digit_start(self):
-        return int(self.get('digit_start', CONFIG_DIGIT_START))
-
-    @property
-    def digit_stop(self):
-        return int(self.get('digit_stop', CONFIG_DIGIT_STOP))
-
-    @property
-    def school_code(self):
-        return self.get('school_code', CONFIG_SCHOOL_CODE)
-
-    @property
-    def b_state_code(self):
-        return self.get('b_state_code', CONFIG_B_STATE_CODE)
-
-    @property
-    def cl_state_code(self):
-        return self.get('cl_state_code', CONFIG_CL_STATE_CODE)
-
-    @property
-    def birth_date(self):
-        return self.get('birth_date', CONFIG_BIRTH_DATE)
-
-    @property
-    def birth_date_start(self):
-        return self.get('birth_date_start', CONFIG_BIRTH_DATE_START)
-
-    @property
-    def birth_date_end(self):
-        return self.get('birth_date_end', CONFIG_BIRTH_DATE_END)
-
-    @property
-    def gender(self):
-        return self.get('gender', CONFIG_GENDER)
-
-    def get(self, key: str, default = None):
-        return self.data.get(key, default)
-
-    def set(self, key: str, value: str):
-        self.data[key] = value
-
-    def set_if_absent(self, key: str, value: str):
-        if key not in self.data:
-            self.set(key, value)
-
-    def save(self):
-        if not self.is_enable():
-            return
-        with open(self.path, 'wb') as f:
-            pickle.dump(self.data, f)
-
-    def load(self):
-        if self.path is None:
-            return
-        with open(self.path, 'rb') as f:
-            if os.path.getsize(self.path) == 0:
-                return
-            self.data = pickle.load(f)
-
-    def is_enable(self):
-        return self.path is not None
-
-
-class Spinner:
-    busy = False
-    delay = 0.1
-
-    def spinning_cursor(self):
-        while 1:
-            for cursor in self.word_list:
-                yield cursor
-
-    def __init__(
-        self,
-        word_list: list,
-        delay: float = None
-        ):
-
-        self.spinner_generator = self.spinning_cursor()
-        self.word_list = word_list
-        if delay and float(delay):
-            self.delay = delay
-
-    def spinner_task(self):
-        while self.busy:
-            print(next(self.spinner_generator), flush = True, end = '\r')
-            time.sleep(self.delay)
-
-    def __enter__(self):
-        self.busy = True
-        threading.Thread(target = self.spinner_task).start()
-
-    def __exit__(self, exception, value, tb):
-        self.busy = False
-        time.sleep(self.delay)
-        if exception is not None:
-            return False
-
-
-def get_version() -> str:
-    SRC = os.path.abspath(os.path.dirname(__file__))
-    PATH = os.path.join(SRC, '__init__.py')
-
-    with open(PATH, encoding = 'UTF-8') as f:
-        for line in f:
-            m = re.match("__version__ = '(.*)'", line)
-            if m:
-                return m.group(1)
-
-
-def cls(
-    art: bool = True,
-    fore_color: Fore = Fore.CYAN
-    ) -> None:
-
-    os.system('cls' if platform.system() == 'Windows' else 'clear')
-    if art is True:
-        print(
-            '',
-            Fore.RED     + '\t███╗░░░███╗██╗░░░██╗░██████╗████████╗░█████╗░██╗░░░░░██╗░░██╗███████╗██████╗░',
-            Fore.YELLOW  + '\t████╗░████║╚██╗░██╔╝██╔════╝╚══██╔══╝██╔══██╗██║░░░░░██║░██╔╝██╔════╝██╔══██╗',
-            Fore.GREEN   + '\t██╔████╔██║░╚████╔╝░╚█████╗░░░░██║░░░███████║██║░░░░░█████═╝░█████╗░░██████╔╝',
-            Fore.CYAN    + '\t██║╚██╔╝██║░░╚██╔╝░░░╚═══██╗░░░██║░░░██╔══██║██║░░░░░██╔═██╗░██╔══╝░░██╔══██╗',
-            Fore.BLUE    + '\t██║░╚═╝░██║░░░██║░░░██████╔╝░░░██║░░░██║░░██║███████╗██║░╚██╗███████╗██║░░██║',
-            Fore.MAGENTA + '\t╚═╝░░░░░╚═╝░░░╚═╝░░░╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚═╝░░╚═╝╚══════╝╚═╝░░╚═╝\n\n',
-            fore_color
-            )
+school_df: pd.DataFrame
 
 
 def digits_generator(
-    gender: str = None,
+    *,
+    gender: Literal[0, 1, 2] = None,
     start: int = 0,
     stop: int = 10000
-    ) -> list:
+) -> List[str]:
+    """Generate a list of 4-digit numbers.
 
-    digits = []
+    Args:
+        gender (int, optional):
+            0 - Non binary, 1 - Male, 2 - Female.
+            Male will be having Odd digit for the last digit,
+            Female will be having Even digit for the last digit.
 
-    try:
-        stop = 10000 if stop >= 10000 else stop
+        start (int, optional): Starting range. Defaults to 0.
+        stop (int, optional): Stopping range. Defaults to 10000.
+    """
+    # Validate parameters
+    digits: str = []
+    start = 0 if start <= 0 else 10000 if start >= 10000 else start
+    stop = 10000 if stop >= 10000 else 0 if stop <= 0 else stop
 
-        if gender.upper() in ('MALE') and gender != '':
-            start = start + 1 if start % 2 == 0 else start
-            for x in range(start, stop, 2):
+    if start > stop:
+        raise ValueError("Start cannot be greater than Stop")
 
-                digits.append(str(x).zfill(4))
+    if gender == 1:
+        start = start + 1 if start % 2 == 0 else start
+    if gender == 2:
+        start = start + 1 if start % 2 == 1 else start
 
-        elif gender.upper() in ('FEMALE') and gender != '':
-            start = start + 1 if start % 2 == 1 else start
-            for x in range(start, stop, 2):
-
-                digits.append(str(x).zfill(4))
-
-        else:
-            raise ValueError('Not in MALE or FEMALE')
-
-    except (AttributeError, ValueError):
-        for x in range(start, stop):
-
-            digits.append(str(x).zfill(4))
+    for x in range(start, stop, 1 if gender == 0 else 2):
+        digits.append(str(x).zfill(4))
 
     return digits
 
+def date_validate(date: str) -> str:
+    """Validate date format.
 
-def valid_date(
-    date,
-    is_argparse: bool = False
-    ) -> bool | str:
+    Args:
+        date (str): Date in YYMMDD format.
 
+    Raises:
+        ValueError: If date is not in YYMMDD format.
+
+    Returns:
+        str: Date in YYMMDD format.
+    """
     try:
-        if len(date) != 6:
-            raise ValueError
-
-        datetime.strptime(date, '%y%m%d')
-
-        if is_argparse is True:
-            return date
-
-        return True
-
+        datetime.strptime(date, "%y%m%d")
+        return date
     except ValueError:
-
-        if is_argparse is True:
-            raise argparse.ArgumentTypeError('Date must be in YYMMDD format')
-
-        return False
-
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
 def date_generator(
-    start_date: str,
-    end_date: str
-    ) -> list:
+    *,
+    start: str="000101",
+    stop: str=datetime.now()
+) -> List[str]:
+    """Generate a list of dates.
 
-    default_start_date = '000101'
-    default_end_date = datetime.now()
-
-    start_date = datetime.strptime(start_date if start_date is not None else default_start_date, '%y%m%d')
-    end_date = datetime.strptime(end_date, '%y%m%d') if end_date is not None else default_end_date
-    df_date = pd.date_range(start_date, end_date - timedelta(days = 1), freq = 'd')
-    date_list = [pd.to_datetime(date).strftime('%y%m%d') for date in df_date.values]
-
-    return date_list
-
-
-def nric_valid(
-    date_birth: str,
-    state_code: str,
-    digit: str,
-    school_code: str = None
-    ) -> bool:
-
-    session = requests.Session()
-    session.headers.update(
-        USER_AGENT
-        )
-
-    while True:
-        try:
-            html_response = session.get(
-                '{0}?nokp={1}{2}{3}'.format(
-                    PAPAR_CARIAN_URL,
-                    date_birth,
-                    state_code,
-                    digit
-                    ),
-                verify = False,
-                timeout = 5
-                )
-            if html_response.status_code == 200:
-                break
-        except NETWORK_ERROR_EXCEPTIONS as err:
-            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-        except Exception as err:
-            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-
-    if 'Tidak Wujud' in html_response.text:
-        return False
-
-    if school_code is None:
-        return True
-
-    while True:
-        try:
-            html_response = session.get(
-                '{0}?nokp={1}{2}{3}&kodsek={4}'.format(
-                    PAPAR_CARIAN_PELAJAR_URL,
-                    date_birth,
-                    state_code,
-                    digit,
-                    school_code
-                    ),
-                verify = False,
-                timeout = 5
-                )
-            if html_response.status_code == 200:
-                break
-        except NETWORK_ERROR_EXCEPTIONS as err:
-            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-        except Exception as err:
-            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-
-    if 'Tidak Wujud' in html_response.text:
-        return False
-
-
-def retrieve_details(
-    date_birth: str,
-    state_code: str,
-    digit: str,
-    school_code: str
-    ) -> dict:
-
-    session = requests.Session()
-    session.headers.update(
-        USER_AGENT
-        )
-
-    while True:
-        try:
-            html_response = session.get(
-                '{0}?nokp={1}{2}{3}&kodsek={4}'.format(
-                    PAPAR_CARIAN_PELAJAR_URL,
-                    date_birth,
-                    state_code,
-                    digit,
-                    school_code
-                    ),
-                verify = False,
-                timeout = 5
-                )
-            if html_response.status_code == 200:
-                break
-        except NETWORK_ERROR_EXCEPTIONS as err:
-            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-        except Exception as err:
-            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-
-    if ('Tidak Wujud' in html_response.text):
-        return None
-
-    while True:
-        try:
-            html_response = session.get(
-                IBUBAPA_SEMAK_URL,
-                verify = False,
-                timeout = 5
-            )
-            if html_response.status_code == 200:
-                break
-        except NETWORK_ERROR_EXCEPTIONS as err:
-            print(Back.YELLOW + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-        except Exception as err:
-            print(Back.RED + Fore.BLACK + '\t ' + type(err).__name__ + ': Retrying ... ' + Style.RESET_ALL, end = '\r')
-            time.sleep(randint(1, 5))
-            continue
-
-    soup = bs(html_response.text, 'lxml')
-    student_name = soup.find(
-        lambda x: x.text.strip() == 'NAMA MURID'
-        ).find_next(
-            'td'
-            ).find_next(
-                'td'
-                ).text.strip()
-
-    df_school = df.loc[df['School Code'] == school_code]
-
-    state_code = df_school['State Code'].values[0]
-    state_name = df_school['State Name'].values[0].split(' - ')[1]
-    district_code = df_school['District Code'].values[0]
-    district_name = df_school['District Name'].values[0].split(' - ')[1]
-    school_name = df_school['School Name'].values[0]
-
-    return {
-        'State Code': [state_code],
-        'State Name': [state_name],
-        'District Code': [district_code],
-        'District Name': [district_name],
-        'School Code': [school_code],
-        'School Name': [school_name],
-        'Student Name': [student_name],
-        'Student NRIC': [str(date_birth + state_code + digit)]
-    }
-
-
-def _main(
-    print_flush: bool = False,
-    tabulate_format: str = 'psql',
-    database_validate_days: int = 7,
-    instant_start: bool = False,
-    digit_start: int = CONFIG_DIGIT_START,
-    digit_stop: int = CONFIG_DIGIT_STOP,
-    school_code: str = CONFIG_SCHOOL_CODE,
-    b_state_code: str = CONFIG_B_STATE_CODE,
-    cl_state_code: str = CONFIG_CL_STATE_CODE,
-    birth_date: str = CONFIG_BIRTH_DATE,
-    birth_date_start: str = CONFIG_BIRTH_DATE_START,
-    birth_date_end: str = CONFIG_BIRTH_DATE_END,
-    gender: str = CONFIG_GENDER,
-    debug: bool = False,
-    enable_checkpoint: bool = False,
-    resume_checkpoint: str = None
-    ) -> None:
-
-    # -------------------------------------------------------------------------
-    #                           INITIALIZE CHECKPOINT IF ENABLE
-
-    if resume_checkpoint is not None:
-        checkpoint = Checkpoint(resume_checkpoint)
-    elif enable_checkpoint is True:
-        checkpoint = Checkpoint(CHECKPOINT_FILENAME)
-    else:
-        checkpoint = Checkpoint()
-
-    checkpoint.set_if_absent('digit_start', digit_start)
-    checkpoint.set_if_absent('digit_stop', digit_stop)
-    checkpoint.set_if_absent('school_code', school_code)
-    checkpoint.set_if_absent('b_state_code', b_state_code)
-    checkpoint.set_if_absent('cl_state_code', cl_state_code)
-    checkpoint.set_if_absent('birth_date', birth_date)
-    checkpoint.set_if_absent('birth_date_start', birth_date_start)
-    checkpoint.set_if_absent('birth_date_end', birth_date_end)
-    checkpoint.set_if_absent('birth_date_end', birth_date_end)
-    checkpoint.set_if_absent('gender', gender)
-
-    if checkpoint.is_enable():
-        instant_start = True
-
-    # -------------------------------------------------------------------------
-    #                           INITIALIZE VARIABLES
-
-    global tabulate, print
-    tabulate = functools.partial(tabulate, headers = 'keys', tablefmt = tabulate_format, showindex = False, missingval = 'None')
-    print = functools.partial(print, flush = print_flush, sep = '\n')
-
-    global df_valid_student
-    df_valid_student = pd.DataFrame()
-    df_option = pd.DataFrame(
-        {
-            'Date of Birth': [None],
-            'Gender': [None],
-            'Born State Code': [None],
-            'Current Living State Code': [None],
-            'School Code': [None]
-        }
+    Args:
+        start (str, optional): Defaults to "000101".
+        stop (str, optional): Defaults to datetime.now().
+    """
+    start_date: datetime = datetime.strptime(start, "%y%m%d")
+    stop_date: datetime = datetime.strptime(stop, "%y%m%d")
+    df_date: pd.DatetimeIndex = pd.date_range(
+        start_date,
+        stop_date - timedelta(days=1),
+        freq="d"
     )
+    dates: List[str] = [
+        pd.to_datetime(date).strftime("%y%m%d")
+        for date in df_date.values
+    ]
+    return dates
 
-    df_option.loc[0, 'Date of Birth'] = checkpoint.birth_date
-    start_date = checkpoint.birth_date_start
-    end_date = checkpoint.birth_date_end
-    df_option.loc[0, 'Gender'] = checkpoint.gender
-    df_option.loc[0, 'Born State Code'] = checkpoint.b_state_code
-    df_option.loc[0, 'Current Living State Code'] = checkpoint.cl_state_code
-    df_option.loc[0, 'School Code'] = checkpoint.school_code
-
-
-    cls()
-    # -------------------------------------------------------------------------
-    #                           LOAD DATABASE
-
-    global df
-    with Spinner(['\t' + Fore.YELLOW + x + Back.LIGHTBLACK_EX + Fore.WHITE + '\t Getting latest database, this might take a while :D ' + Style.RESET_ALL for x in '⣷⣯⣟⡿⢿⣻⣽⣾'],
-                 delay = 0.1):
-        df = DF().pull_csv(
-            days_ago = database_validate_days,
-        )
-
-
-    # -------------------------------------------------------------------------
-    #                            PROMPTS
-
-    def set_date_birth():
-        date_birth = input(Back.YELLOW + Fore.BLACK + '\t Enter date of birth (YYMMDD): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-
-        if valid_date(date_birth) is False:
-            input(Back.RED + Fore.BLACK + '\n\t Invalid Date of Birth' + Style.RESET_ALL)
-            return
-
-        df_option.loc[0, 'Date of Birth'] = date_birth
-
-    def set_gender():
-        gender = input(Back.YELLOW + Fore.BLACK + '\t Enter gender (MALE/FEMALE): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-
+def is_student_exist(
+    *,
+    nric: str,
+    school_code: Optional[str]=None,
+    network_error_handler: Optional[Callable[[NETWORK_ERROR_EXCEPTIONS], None]] = lambda e: None
+) -> bool:
+    """Check if student exist.
+    """
+    session: requests.Session = get_session()
+    url: str = f"{PAPAR_CARIAN_URL}?nokp={nric}"
+    while True:
         try:
-            if gender == '':
-                raise ValueError
-            elif gender.upper() in ('MALE', 'FEMALE'):
-                pass
-            else:
-                raise ValueError
-        except (AttributeError, ValueError):
-            input(Back.RED + Fore.BLACK + '\n\t Invalid Gender' + Style.RESET_ALL)
-            return
-
-        df_option.loc[0, 'Gender'] = gender.upper()
-
-    def set_b_state_code():
-        b_state_code = input(Back.YELLOW + Fore.BLACK + '\t Enter born state code (2 digits): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-        if b_state_code == '' or b_state_code not in df['State Code'].values:
-            input(Back.RED + Fore.BLACK + '\n\t Invalid State Code' + Style.RESET_ALL)
-            return
-
-        df_option.loc[0, 'Born State Code'] = b_state_code
-
-    def set_cl_state_code():
-        cl_state_code = input(Back.YELLOW + Fore.BLACK + '\t Enter current living state code (2 digits): ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-        if cl_state_code == '' or cl_state_code not in df['State Code'].values:
-            input(Back.RED + Fore.BLACK + '\n\t Invalid State Code' + Style.RESET_ALL)
-            return
-
-        df_option.loc[0, 'Current Living State Code'] = cl_state_code
-
-    def set_school_code():
-        school_code = input(Back.YELLOW + Fore.BLACK + '\t Enter school code: ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-        if school_code == '' or school_code.upper() not in df['School Code'].values:
-            input(Back.RED + Fore.BLACK + '\n\t Invalid School Code' + Style.RESET_ALL)
-            return
-
-        df_option.loc[0, 'School Code'] = school_code.upper()
-
-
-    while instant_start is False:
-        cls()
-        print(
-            tabulate(
-                df_option,
-                ),
-            '\n\tThis program has designated to search through all posibilities of NRIC.',
-            '\tPlease make sure you have entered the correct information.',
-            '\tIf you are not sure, you may leave it blank.\n',
-            '\t1. Provide Date of Birth',
-            '\t2. Provide Gender',
-            '\t3. Provide Born State Code',
-            '\t4. Provide Current Living State Code',
-            '\t5. Provide School Code',
-            '',
-
-            '\tS. Lesgo!',
-        )
-
-        option_dict = {
-            '1': set_date_birth,
-            '2': set_gender,
-            '3': set_b_state_code,
-            '4': set_cl_state_code,
-            '5': set_school_code
-        }
-
-        option = input(Back.YELLOW + Fore.BLACK + '\n\t Enter your option: ' + Back.BLUE + Fore.BLACK + Style.RESET_ALL)
-
-        if option.upper() == 'S':
-
-            if df_option['Date of Birth'].values[0] is None:
-
-                while True:
-                    start_date = input(Back.RED + Fore.BLACK + '\n\t Enter a starting date (default: 000101)(You may leave it blank): ' + Style.RESET_ALL)
-                    if valid_date(start_date) is True or start_date == '':
-                        break
-                    print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
-
-                while True:
-                    end_date = input(Back.RED + Fore.BLACK + '\n\t Enter an ending date (default: ' + datetime.now().strftime('%y%m%d') + ')(You may leave it blank): ' + Style.RESET_ALL)
-                    if valid_date(end_date) is True or end_date == '':
-                        break
-                    print(Back.RED + Fore.BLACK + '\n\t Must be in format YYMMDD ' + Style.RESET_ALL)
-
+            response = session.get(
+                url,
+                timeout=5,
+                verify=False
+            )
+            if not response.ok:
+                continue
+            if "Tidak Wujud" in response.text:
+                return False
+            if not url.startswith(PAPAR_CARIAN_PELAJAR_URL) and school_code is not None:
+                url = f"{PAPAR_CARIAN_PELAJAR_URL}?nokp={nric}&kodsek={school_code}"
+                continue
             break
 
-        option_dict.get(option, lambda: print())()
+        except NETWORK_ERROR_EXCEPTIONS as e:
+            network_error_handler(e)
+            time.sleep(randint(1, 5))
+            continue
+    return True
 
+def retrieve_student(
+    *,
+    nric: str,
+    school_code: str,
+    network_error_handler: Optional[Callable[[NETWORK_ERROR_EXCEPTIONS], None]] = lambda e: None
+) -> Optional[Student]:
+    """Retrieve student information if exist.
+    Else return None.
+    """
+    session: requests.Session = get_session()
+    response: requests.Response
 
-    # -------------------------------------------------------------------------
-    #                           INITIALIZE VARIABLES
+    # Verify student availability
+    if not is_student_exist(
+        nric=nric,
+        school_code=school_code,
+        network_error_handler=network_error_handler
+    ):
+        return None
 
-    date_birth = df_option['Date of Birth'].values[0]
-    b_state_code = df_option['Born State Code'].values[0]
-    cl_state_code = df_option['Current Living State Code'].values[0]
-    gender = df_option['Gender'].values[0]
-    school_code = df_option['School Code'].values[0]
-    user_provide_school = True if school_code is not None else False
-    digits = digits_generator(gender = gender, start = checkpoint.digit_start, stop = checkpoint.digit_stop)
+    # Retrieve student information
+    while True:
+        try:
+            response = session.get(
+                IBUBAPA_SEMAK_URL,
+                timeout=5,
+                verify=False
+            )
+            if response.ok:
+                break
 
-    if date_birth is None:
-        list_date_birth = date_generator(
-            start_date = start_date if start_date != '' else None,
-            end_date = end_date if end_date != '' else None,
+        except NETWORK_ERROR_EXCEPTIONS as e:
+            network_error_handler(e)
+            time.sleep(randint(1, 5))
+            continue
+
+    soup = bs(response.text, "lxml")
+    student_name = soup.find(lambda tag: tag.text.strip() == "NAMA MURID") \
+        .find_next("td") \
+        .find_next("td") \
+        .text \
+        .strip()
+
+    df = school_df.loc[school_df["School Code"] == school_code]
+    school_name = df["School Name"].values[0]
+    state_code = df["State Code"].values[0]
+    state_name = df["State Name"].values[0].split(" - ")[1]
+    district_code = df["District Code"].values[0]
+    district_name = df["District Name"].values[0].split(" - ")[1]
+
+    return Student(
+        state_code=state_code,
+        state_name=state_name,
+        district_code=district_code,
+        district_name=district_name,
+        school_code=school_code,
+        school_name=school_name,
+        student_name=student_name,
+        student_nric=nric
+    )
+
+def _main(
+    checkpoint: Checkpoint,
+    database_renew_interval: int,
+    ui: Window
+) -> None:
+    """Main function.
+    """
+    ui.append_log("Retrieving latest school information.")
+    # Retrieve school information
+    global school_df
+    school_df = get_data(
+        renew_interval=database_renew_interval,
+        error_handler=lambda e: ui.set_error(e)
+    )
+    ui.append_log("School information retrieved.")
+
+    # ---------------------------------------------------------------------------------------------
+    #                                VALIDATE VARIABLES
+
+    if checkpoint.birth_state_code is not None:
+        if school_df.loc[school_df["State Code"] == str(checkpoint.birth_state_code)].empty:
+            raise ValueError(f"Birth State Code {checkpoint.birth_state_code} is not valid.")
+
+    if checkpoint.current_living_state_code is not None:
+        if school_df.loc[school_df["State Code"] == str(checkpoint.current_living_state_code)].empty:
+            raise ValueError(f"Current Living State Code {checkpoint.current_living_state_code} is not valid.")
+
+    if checkpoint.school_code is not None:
+        if school_df.loc[school_df["School Code"] == checkpoint.school_code].empty:
+            raise ValueError(f"School Code {checkpoint.school_code} is not valid.")
+
+    # ---------------------------------------------------------------------------------------------
+    #                                INITIALIZE VARIABLES
+
+    ui.append_log("Initializing variables.")
+    digits: List[str] = digits_generator(
+        gender=checkpoint.gender,
+        start=int(checkpoint.loop_digit_start),
+        stop=int(checkpoint.loop_digit_stop)
+    )
+
+    birth_dates: List[str]
+    birth_state_code_df: pd.DataFrame
+    current_living_state_code_df: pd.DataFrame
+
+    if checkpoint.birth_date is None:
+        birth_dates = date_generator(
+            start=checkpoint.loop_birth_date_start,
+            stop=checkpoint.loop_birth_date_stop
         )
+    else:
+        birth_dates = [checkpoint.birth_date]
 
-    elif date_birth is not None:
-        list_date_birth = [date_birth]
+    # As the user didn't specify the birth state code, we will max out the
+    # chances of finding the student by prioritizing the state where the
+    # student is currently living and the state where the school is located.
+    if checkpoint.birth_state_code is None:
+        birth_state_code_df = school_df["State Code"] \
+            .drop_duplicates() \
+            .reset_index(drop=True)
 
-    if b_state_code is None:
-        df_b_state_code = df['State Code'].drop_duplicates().reset_index(drop = True)
+        # Prioritize the state where the student is currently living
+        if checkpoint.current_living_state_code is not None:
+            # Get the index of the current living state code in birth state code dataframe
+            index: int = birth_state_code_df.index[
+                birth_state_code_df == checkpoint.current_living_state_code
+            ] \
+                .tolist()[0]
+            # Move the current living state code to the top of the dataframe
+            birth_state_code_df.iloc[index], birth_state_code_df.iloc[0] = \
+                birth_state_code_df.iloc[0], birth_state_code_df.iloc[index]
 
-        if cl_state_code is not None:
-            index = df_b_state_code.index[df_b_state_code == cl_state_code].tolist()[0] # Get index of cl_state_code in df_b_state_code
-            df_b_state_code.iloc[index], df_b_state_code.iloc[0] = df_b_state_code.iloc[0], df_b_state_code.iloc[index] # Swap index of cl_state_code with index 0
+        # Prioritize the state where the school is located
+        if checkpoint.school_code is not None:
+            state_code: int = school_df.loc[
+                school_df["School Code"] == checkpoint.school_code
+            ] \
+                ["State Code"] \
+                .values[0]
 
-        if school_code is not None:
-            state_code = df.loc[df['School Code'] == school_code]['State Code'].values[0]
-            index = df_b_state_code.index[df_b_state_code == state_code].tolist()[0]
-            df_b_state_code.iloc[index], df_b_state_code.iloc[0] = df_b_state_code.iloc[0], df_b_state_code.iloc[index]
+            index: int = birth_state_code_df.index[
+                birth_state_code_df == state_code
+            ] \
+                .tolist()[0]
 
-    elif b_state_code is not None:
-        df_b_state_code = [b_state_code]
+            # Prevent pulling the last prioritized state code down
+            head_index: int = 0 if checkpoint.current_living_state_code is None else 1
+            birth_state_code_df.iloc[index], birth_state_code_df.iloc[head_index] = \
+                birth_state_code_df.iloc[head_index], birth_state_code_df.iloc[index]
 
-    if cl_state_code is None:
+    # If the user specified the birth state code, we will only search for students in that state.
+    else:
+        birth_state_code_df: List[int] = [checkpoint.birth_state_code]
 
-        if school_code is not None:
-            df_cl_state_code = df.loc[df['School Code'] == school_code]['State Code'].values
+    # If the user didn't specify the current living state code, we will use the same technique
+    # as before to maximize the chances of finding the student.
+    if checkpoint.current_living_state_code is None:
+        if checkpoint.school_code is not None:
+            current_living_state_code_df = school_df.loc[
+                school_df["School Code"] == checkpoint.school_code
+            ] \
+                ["State Code"] \
+                .values
 
         else:
-            df_cl_state_code = df['State Code'].drop_duplicates().reset_index(drop = True)
+            current_living_state_code_df = school_df["State Code"] \
+                .drop_duplicates() \
+                .reset_index(drop=True)
 
-            if b_state_code is not None:
-                index = df_cl_state_code.index[df_cl_state_code == b_state_code].tolist()[0]
-                df_cl_state_code.iloc[index], df_cl_state_code.iloc[0] = df_cl_state_code.iloc[0], df_cl_state_code.iloc[index]
+            if checkpoint.birth_state_code is not None:
+                index: int = current_living_state_code_df.index[
+                    current_living_state_code_df == str(checkpoint.birth_state_code)
+                ] \
+                    .tolist()[0]
 
-    elif cl_state_code is not None:
-        df_cl_state_code = [cl_state_code]
+                current_living_state_code_df.iloc[index], current_living_state_code_df.iloc[0] = \
+                    current_living_state_code_df.iloc[0], current_living_state_code_df.iloc[index]
+
+    # If the user specified the current living state code
+    else:
+        current_living_state_code_df: List[int] = [checkpoint.current_living_state_code]
 
 
-    # -------------------------------------------------------------------------
-    #                           MAIN
+    # ---------------------------------------------------------------------------------------------
+    #                                START SCRAPING
 
-    current_progress = 0
-    total_progress = len(df_b_state_code) * len(list_date_birth) * len(digits)
-    for bs_code in df_b_state_code:
-        for date_birth in list_date_birth:
 
-            def print_header():
-                cls()
-                print(
-                    tabulate(
-                        df_valid_student,
-                        ),
-                    '',
-                    Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == bs_code]['State Name'].values[0] + '\n' + Style.RESET_ALL
-                )
+    current_progress: int = 0
+    total_progress: int = len(birth_state_code_df) * len(birth_dates) * len(digits)
 
-            print_header()
 
-            debug_exec_time = '0'
+    for birth_state in birth_state_code_df:
+        for date in birth_dates:
             for digit in digits:
 
-                # 0.5 chances to save checkpoint to effectively save time
-                if randint(0, 1) == 0:
-                    checkpoint.set('digit_start', digit)
-                    checkpoint.save()
-
-                if debug is True:
-                    debug_start_time = time.time()
-
                 current_progress += 1
-                percentage_progress = str(round(current_progress / total_progress * 100, 4)) + '%'
+                progress_percentage: float = round(current_progress / total_progress * 100, 4)
+                ui.set_progression(progress_percentage)
 
-                width_terminal = os.get_terminal_size().columns
+                # ---------------------------------------------------------------------------------
+                #                    CHECKPOINT RESUMING MECHANISM
 
-                def debug_exec_line() -> str:
-                    if debug is True: return str(Back.CYAN + Fore.BLACK + ' (Execution Time: ' + debug_exec_time + ') ' + Back.BLUE + Fore.BLACK)
-                    else : return ''
+                if not checkpoint.is_resumed():
+                    ui.set_info("Running checkpoint resuming mechanism.")
+                    # Indicate first run
+                    if (
+                        checkpoint.current_loop_birth_state_code == None
+                        and checkpoint.current_loop_birth_date == None
+                        and checkpoint.current_loop_digit == None
+                    ):
+                        checkpoint.resumed = True
+                        ui.append_log("Checkpoint resumed.")
 
-                spaces = width_terminal - len(percentage_progress) - len(debug_exec_line()) - 38 - 30
-
-                def current_progress_line(
-                    print_exec_line = True
-                ) -> str:
-                    return str(
-                        '\t' + Back.BLACK + Fore.WHITE + ' (' + percentage_progress + ') ' + Back.YELLOW + Fore.BLACK +
-                        ' Current Progress: ' + Back.BLUE + Fore.BLACK + ' NRIC ' + date_birth + bs_code + digit + ' ' +
-                        (debug_exec_line() if print_exec_line is True else '') + ' ' * spaces + Style.RESET_ALL
-                    )
-
-                print(
-                    current_progress_line(),
-                    end = '\r'
-                    )
-
-                response = nric_valid(
-                    date_birth = date_birth,
-                    state_code = bs_code,
-                    digit = digit
-                    )
-
-                if debug is True:
-                    debug_end_time = time.time()
-                    debug_exec_time = str(round(debug_end_time - debug_start_time, 4)) + 's'
-
-                if response is False:
-                    continue
-
-                for cls_code in df_cl_state_code:
-
-                    def print_header_advanced():
-                        cls()
-                        print_state_or_school = str(Fore.RED + '\tGo Through Schools in State: ' + df.loc[df['State Code'] == cls_code]['State Name'].values[0] + '\n') \
-                            if user_provide_school is False \
-                            else str(Fore.RED + '\tGo Through School: ' + school_code + ' ' + df.loc[df['School Code'] == school_code]['School Name'].values[0] + '\n' + Style.RESET_ALL
-                        )
-                        print(
-                            tabulate(
-                                df_valid_student,
-                                ),
-                            '',
-                            Fore.RED + '\tNRIC State Code: ' + df.loc[df['State Code'] == bs_code]['State Name'].values[0],
-                            print_state_or_school
-                        )
-
-                    print_header_advanced()
-                    print(
-                        current_progress_line(
-                            print_exec_line = False
-                        )
-                    )
-
-                    # Initiate School Code Variable
-                    if user_provide_school is False:
-                        df_school_code = df.loc[df['State Code'] == cls_code]['School Code']
-                        length_school = str(len(df_school_code.values))
-
-                    elif user_provide_school is not False:
-                        df_school_code = [school_code]
-                        length_school = '1'
-
-                    current_school_index = 0
-                    for school_code in df_school_code:
-
-                        if debug is True: debug_start_time = time.time()
-
-                        current_school_index += 1
-                        school_name = df.loc[df['School Code'] == school_code]['School Name'].values[0]
-                        length_string = len(str(current_school_index) + length_school + school_code + school_name) + (5 if length_school != '1' else -2)
-                        width_terminal = os.get_terminal_size().columns
-                        spaces = width_terminal - length_string - len(debug_exec_line()) - 30
-
-                        print(
-                            '\t' + ((Back.BLACK + Fore.WHITE + ' (' + str(current_school_index) + '/' + length_school + ') ') \
-                                if length_school != '1' \
-                                else ''
-                            )
-                                + Back.YELLOW + Fore.BLACK + ' ' + school_code + ' ' + Back.BLUE + Fore.BLACK + ' ' + school_name + ' '
-                                + debug_exec_line() + ' ' * spaces + Style.RESET_ALL,
-                            end = '\r'
-                        )
-
-                        response = nric_valid(
-                            date_birth = date_birth,
-                            state_code = bs_code,
-                            digit = digit,
-                            school_code = school_code
-                        )
-
-                        if debug is True:
-                            debug_end_time = time.time()
-                            debug_exec_time = str(round(debug_end_time - debug_start_time, 4)) + 's'
-
-                        if response is False:
-                            continue
-
-                        response = retrieve_details(
-                            date_birth = date_birth,
-                            state_code = bs_code,
-                            digit = digit,
-                            school_code = school_code
-                        )
-
-                        df_response = pd.DataFrame(response)
-                        df_valid_student = pd.concat(
-                            [df_valid_student, df_response],
-                            ignore_index = True
-                            ).drop_duplicates()
-                        DF().push_csv(
-                            dataframe = df_valid_student,
-                            file_name = STUDENT_DETAILS_FILENAME
-                        )
-
-                        print_header_advanced()
-                        print(
-                            current_progress_line(
-                                print_exec_line = False
-                            )
-                        )
-
+                    # Not the first run, so keep skipping until we reach the last checkpoint
+                    elif (
+                        checkpoint.current_loop_birth_state_code != int(birth_state)
+                        or checkpoint.current_loop_birth_date != date
+                        or checkpoint.current_loop_digit != digit
+                    ):
                         continue
 
-                print_header()
-                print(
-                    current_progress_line(),
-                    end = '\r'
-                )
+                    elif (
+                        checkpoint.current_loop_school_code == None
+                        and checkpoint.current_loop_current_living_state_code == None
+                    ):
+                        checkpoint.resumed = True
+                        ui.append_log("Checkpoint resumed.")
+
+                if checkpoint.is_resumed():
+                    checkpoint.current_loop_birth_state_code = int(birth_state)
+                    checkpoint.current_loop_birth_date = date
+                    checkpoint.current_loop_digit = digit
+                    checkpoint.current_loop_current_living_state_code = None
+                    checkpoint.current_loop_school_code = None
+                    checkpoint.save()
+
+
+                # ---------------------------------------------------------------------------------
+                #                  SCRAPE
+
+                def get_state_name(state_code: str) -> str:
+                    return school_df.loc[school_df["State Code"] == str(state_code).zfill(2)]["State Name"].values[0].split(" - ")[1]
+
+                birth_state_name: str = get_state_name(birth_state)
+                nric: str = f"{date}{str(birth_state).zfill(2)}{digit}"
+                ui.set_info(f"Birth Date: {date} | Birth State: {birth_state} {birth_state_name} | Digit: {digit}")
+
+                response: bool = is_student_exist(nric=nric, network_error_handler=lambda x: ui.set_error(x))
+
+                if not response:
+                    continue
+
+                ui.append_log(f"Student {nric} exists. Require school information in order to retrieve student information.")
+
+
+                def scrape_school(school_code: str):
+                    response: bool = is_student_exist(
+                        nric=nric,
+                        school_code=school_code,
+                        network_error_handler=lambda x: ui.set_error(x)
+                    )
+
+                    if not response:
+                        return
+
+                    ui.append_log(f"Student {nric} found. Retrieving student information")
+
+                    student: Student = retrieve_student(
+                        nric=nric,
+                        school_code=school_code,
+                        network_error_handler=lambda x: ui.set_error(x)
+                    )
+
+                    if student is None:
+                        ui.append_log(f"Student {nric} not found in {school_code} {school_name}. This should not happen.")
+                        return
+
+                    append_student(student) # Append student to database
+                    ui.append_student(student) # Append student to UI
+
+
+
+                # If the user specified the school code, we will only search for students in that school.
+                if checkpoint.school_code is not None:
+                    ui.set_info(f"NRIC: {nric} | School: {checkpoint.school_code}")
+                    scrape_school(checkpoint.school_code)
+                    continue
+
+
+
+                for current_state in current_living_state_code_df:
+                    current_school_df = school_df.loc[school_df["State Code"] == current_state]
+
+                    living_state_name: str = get_state_name(current_state)
+
+                    current_school_progress: int = 0
+                    total_school_progress: int = len(current_school_df)
+
+                    for _, _, _, _, school_code, school_name in current_school_df.values:
+
+                        current_school_progress += 1
+
+                        # -------------------------------------------------------------------------
+                        #          CHECKPOINT RESUMING MECHANISM
+
+
+                        if not checkpoint.is_resumed():
+                            if checkpoint.current_loop_school_code != school_code:
+                                continue
+
+                            checkpoint.resumed = True
+                            ui.append_log("Checkpoint resumed.")
+
+                        if checkpoint.is_resumed():
+                            checkpoint.current_loop_current_living_state_code = int(current_state)
+                            checkpoint.current_loop_school_code = school_code
+                            checkpoint.save()
+
+
+                        # -------------------------------------------------------------------------
+                        #          SCRAPE
+
+                        ui.set_info(
+                            f"NRIC: {nric} " + \
+                            f"| Living State: {current_state} {living_state_name} " + \
+                            f"| ({current_school_progress}/{total_school_progress}) School: {school_code} {school_name}"
+                        )
+
+                        scrape_school(school_code)
 
 
 def main():
+    from . import __version__
 
-    df = DF().pull_csv(
-        ignore_validation = True,
-        from_url = True
-        )
-
-    parser = argparse.ArgumentParser(
-        description = 'Retrieve Student Details from any given details',
-        epilog = textwrap.dedent(
-            f'''
-            How to start:
-
-            $ mystalker
-
-            Tips:
-            For faster searching, you can use the following options:
-
-            $ mystalker --digit-stop 3000
-
-            Note for last 4 digits information:
-            Person born prior and in the year 1999 will have the number started with 5## or 6## or 7## while a person born after and in the year 2000 will have the number started with 0##
-
-            See where is the data stored:
-
-            $ mystalker --where
-
-            If you don't know what is your STATE CODE or SCHOOL CODE, please refer to the following link:
-            {DATABASE_URL}
-
-            '''
-            ),
-        formatter_class = argparse.RawDescriptionHelpFormatter
-        )
+    parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '-v',
-        '--version',
-        action = 'version',
-        version = '%(prog)s {0}'.format(get_version())
-        )
-    parser.add_argument(
-        '-w',
-        '--where',
-        help = 'Show where is the data stored',
-        action = 'store_true',
-        default = False
+        "-v",
+        "--version",
+        action="version",
+        version=f"mystalker {__version__}"
     )
     parser.add_argument(
-        '--print-flush',
-        help = 'Whether to forcibly flush the stream',
-        action = 'store_true',
-        default = False
+        "-w",
+        "--where",
+        help="Specify the directory to store the database.",
+        action="store_true",
+        default=False
     )
     parser.add_argument(
-        '--instant-start',
-        help = 'Skip the menu and start immediately',
-        action = 'store_true',
-        default = False
-    )
-    parser.add_argument(
-        '--tabulate-format',
-        help = 'The format to use for tabulating the data',
-        metavar = 'FORMAT',
-        type = str,
-        choices = ['plain', 'simple', 'github', 'grid', 'fancy_grid', 'pipe', 'orgtbl', 'jira', 'presto', 'pretty', 'psql', 'rst', 'mediawiki', 'moinmoin', 'youtrack', 'html', 'unsafehtml', 'latex', 'latex_raw', 'latex_booktabs', 'latex_longtable', 'textile', 'tsv'],
-        default = 'psql'
-    )
-    parser.add_argument(
-        '--database-validate-days',
-        help = 'How many days can a database.csv be valid, If 7, it will get update if exceeds 7 days count from the last update',
-        metavar = 'DAYS',
-        type = int,
-        default = 7
+        "--database-renew-interval",
+        help="Specify the database renew interval in days.",
+        metavar="DAYS",
+        type=int,
+        default=DEFAULT_DATABASE_RENEW_INTERVAL
     )
 
-    def valid_int(value):
-        try:
-            if int(value) not in range(0, 10000):
-                raise ValueError
-
-            return int(value)
-
-        except ValueError:
-            raise argparse.ArgumentTypeError('Integer must between 0 and 10000')
+    def valid_digit(value: str) -> int:
+        if int(value) not in range(0, 10000):
+            raise argparse.ArgumentTypeError(f"{value} must be in range 0-9999")
+        return int(value)
 
     parser.add_argument(
-        '--digit-start',
-        help = 'Generate NRIC last 4 digits start from this number',
-        metavar = 'INTEGER',
-        type = valid_int,
-        default = CONFIG_DIGIT_START
+        "--loop-digit-start",
+        help="Specify the starting range for digits.",
+        metavar="DIGIT",
+        type=valid_digit,
+        default=DEFAULT_LOOP_DIGIT_START
     )
     parser.add_argument(
-        '--digit-stop',
-        help = 'Generate NRIC last 4 digits stop at this number',
-        metavar = 'INTEGER',
-        type = valid_int,
-        default = CONFIG_DIGIT_STOP
+        "--loop-digit-stop",
+        help="Specify the stopping range for digits.",
+        metavar="DIGIT",
+        type=valid_digit,
+        default=DEFAULT_LOOP_DIGIT_STOP
+    )
+    parser.add_argument(
+        "--birth-state-code",
+        help="Specify the state where the student was born.",
+        metavar="STATE_CODE",
+        type=int,
+        default=None
+    )
+    parser.add_argument(
+        "--current-living-state-code",
+        help="Specify the state where the student is currently living.",
+        metavar="STATE_CODE",
+        type=int,
+        default=None
+    )
+    parser.add_argument(
+        "--school-code",
+        help="Specify the school code.",
+        metavar="SCHOOL_CODE",
+        type=str,
+        default=None
+    )
+    parser.add_argument(
+        "--birth-date",
+        help="Specify the student's birth date in YYMMDD format.",
+        metavar="YYMMDD",
+        type=date_validate,
+        default=None
+    )
+    parser.add_argument(
+        "--loop-birth-date-start",
+        help="Specify the starting range for birth date.",
+        metavar="YYMMDD",
+        type=date_validate,
+        default=DEFAULT_LOOP_BIRTH_DATE_START
+    )
+    parser.add_argument(
+        "--loop-birth-date-stop",
+        help="Specify the stopping range for birth date.",
+        metavar="YYMMDD",
+        type=date_validate,
+        default=DEFAULT_LOOP_BIRTH_DATE_STOP
+    )
+    parser.add_argument(
+        "--gender",
+        help="Specify the gender of the student.",
+        metavar="GENDER",
+        type=str.lower,
+        choices=["male", "female", "none-binary"],
+        default="none-binary"
+    )
+    parser.add_argument(
+        "-c",
+        "--checkpoint",
+        help="Enable checkpoint resuming mechanism.",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
+        "-f",
+        "--checkpoint-file",
+        help="Specify the checkpoint filepath.",
+        metavar="FILEPATH",
+        type=str,
+        default=None
     )
 
-    def valid_state_code(code):
-        if code not in df['State Code'].values:
-            raise argparse.ArgumentTypeError(f'Invalid State Code, please refer to {DATABASE_URL}')
+    args: argparse.Namespace = parser.parse_args()
 
-        return code
+    if args.where:
+        print(get_data_dir())
+        return
 
-    parser.add_argument(
-        '--cl-state-code',
-        help = 'State Code of the State where the student is living currently',
-        metavar = 'CODE',
-        type = valid_state_code
-    )
-    parser.add_argument(
-        '--b-state-code',
-        help = 'State Code of the State where the student is born',
-        metavar = 'CODE',
-        type = valid_state_code
-    )
+    gender: Literal[0, 1, 2] = 1 if args.gender == "male" \
+        else 2 if args.gender == "female" \
+        else 0
 
-    def valid_school_code(code):
-        if code.upper() not in df['School Code'].values:
-            raise argparse.ArgumentTypeError(f'Invalid School Code, please refer to {DATABASE_URL}')
+    cp: Checkpoint
+    cp_args: dict = {
+        "loop_digit_start": args.loop_digit_start,
+        "loop_digit_stop": args.loop_digit_stop,
+        "school_code": args.school_code,
+        "birth_state_code": args.birth_state_code,
+        "current_living_state_code": args.current_living_state_code,
+        "birth_date": args.birth_date,
+        "loop_birth_date_start": args.loop_birth_date_start,
+        "loop_birth_date_stop": args.loop_birth_date_stop,
+        "gender": gender
+    }
 
-        return code.upper()
+    if args.checkpoint_file is not None:
+        cp = Checkpoint(args.checkpoint_file, **cp_args)
+    elif args.checkpoint:
+        cp = Checkpoint(CHECKPOINT_FILENAME, **cp_args)
+    else:
+        cp = Checkpoint(**cp_args)
 
-    parser.add_argument(
-        '--school-code',
-        help = 'School Code of the School',
-        metavar = 'CODE',
-        type = valid_school_code
-    )
-    parser.add_argument(
-        '--birth-date',
-        help = 'Birth Date of the Student',
-        metavar = 'YYMMDD',
-        type = lambda x: valid_date(x, is_argparse = True),
-    )
-    parser.add_argument(
-        '--birth-date-start',
-        help = 'Start date of a looping birth date',
-        metavar = 'YYMMDD',
-        type = lambda x: valid_date(x, is_argparse = True),
-    )
-    parser.add_argument(
-        '--birth-date-end',
-        help = 'End date of a looping birth date',
-        metavar = 'YYMMDD',
-        type = lambda x: valid_date(x, is_argparse = True),
-    )
-    parser.add_argument(
-        '--gender',
-        help = 'Gender of the Student',
-        metavar = 'GENDER',
-        choices = ['MALE', 'FEMALE'],
-        type = str.upper,
-    )
-    parser.add_argument(
-        '--debug',
-        help = 'Enable Debug Mode',
-        action = 'store_true',
-        default = False
-    )
-    parser.add_argument(
-        '-c',
-        '--enable-checkpoint',
-        help = 'Will save the current progress to a checkpoint file, resume from the checkpoint file using --resume-checkpoint <path>',
-        action = 'store_true',
-        default = False
-    )
-    parser.add_argument(
-        '-r',
-        '--resume-checkpoint',
-        help = 'Resume from a checkpoint file, will override any value provided in the command line',
-        metavar = 'PATH',
-        type = str,
-        default = None
-    )
-
-    args = parser.parse_args()
-
-    if args.where is True:
-        PATH = Path().user_data_dir
-        print(PATH)
-        try:
-            import subprocess  # Only available on Windows system, this will open the folder in the explorer
-            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
-            subprocess.run([FILEBROWSER_PATH, PATH])
-        except:
-            pass
-        finally:
-            sys.exit(0)
-
-
-    try:
+    with Window() as ui:
+        ui.set_header(f"MyStalker {__version__}\n{get_data_dir().joinpath(STUDENTS_FILENAME)}")
         _main(
-            print_flush = args.print_flush,
-            tabulate_format = args.tabulate_format,
-            database_validate_days = args.database_validate_days,
-            instant_start = args.instant_start,
-            digit_start = args.digit_start,
-            digit_stop = args.digit_stop,
-            b_state_code = args.b_state_code,
-            cl_state_code = args.cl_state_code,
-            school_code = args.school_code,
-            birth_date = args.birth_date,
-            birth_date_start = args.birth_date_start,
-            birth_date_end = args.birth_date_end,
-            gender = args.gender,
-            debug = args.debug,
-            enable_checkpoint = args.enable_checkpoint,
-            resume_checkpoint = args.resume_checkpoint
+            checkpoint=cp,
+            database_renew_interval=args.database_renew_interval,
+            ui=ui
         )
-
-        cls()
-        print(tabulate(df_valid_student), end = '\n\n')
-
-    except KeyboardInterrupt:
-        cls()
-        try: print(tabulate(df_valid_student), end = '\n\n')
-        except: pass
-        print('\n\tInterrupted by user')
-
-    except Exception:
-        cls()
-        try: print(tabulate(df_valid_student), end = '\n\n')
-        except: pass
-        print(traceback.format_exc())
-
-    finally:
-        print(
-            '\tVersion: ' + get_version(),
-            '\n\tThank you for using this program',
-            '\tIf you wonder where the data is stored, here it is:',
-            '\t' + Path().user_data_dir,
-            '\n\tIf you have any issues or suggestions, please visit:',
-            f'\t{GITHUB_URL}',
-            sep = '\n'
-            )
-
-        input('\n\t>ENTER<\n\t' + Style.RESET_ALL)

@@ -1,5 +1,5 @@
 
-from mystalker import *
+from mystalker import main
 
 if __name__ == "__main__":
     main()

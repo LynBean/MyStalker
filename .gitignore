@@ -5,9 +5,8 @@
 # VSCode
 .vscode
 
-# Script for own-use
-*[Dd]raft*
-*.ipynb
+# Application generated data
+*.checkpoint
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

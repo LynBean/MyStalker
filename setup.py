@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+from typing import List
 from setuptools import setup
 
 
@@ -24,6 +25,19 @@ def get_version():
 
     raise SystemExit("Could not find version string.")
 
+dependencies: List[str] = [
+    "argparse",
+    "bs4",
+    "lxml",
+    "pandas",
+    "requests",
+    "tabulate",
+    "urllib3",
+]
+
+if os.name == "nt":
+    dependencies.append("windows-curses")
+
 
 setup(
     name = "mystalker",
@@ -36,17 +50,7 @@ setup(
     packages = ["mystalker"],
     zip_safe = False,
     python_requires = ">=3.5",
-    install_requires = [
-        "argparse",
-        "bs4",
-        "colorama",
-        "lxml",
-        "pandas",
-        "platformdirs",
-        "requests",
-        "tabulate",
-        "urllib3",
-    ],
+    install_requires = dependencies,
     entry_points = {
         "console_scripts": [
             "mystalker = mystalker.__main__: main"
@@ -59,7 +63,12 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
     ],
     keywords = (
-        ["malaysia", "malaysia-nric", "malaysia-stalker", "sapsnkra.moe.gov.my"]
+        [
+            "malaysia",
+            "malaysia-nric",
+            "malaysia-stalker",
+            "sapsnkra.moe.gov.my"
+        ]
     ),
     long_description = LongDescription,
     long_description_content_type = "text/markdown",
