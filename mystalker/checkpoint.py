@@ -2,6 +2,7 @@
 import pickle
 from pathlib import Path
 from typing import Any
+from typing import Optional
 
 from .constants import *
 
@@ -15,11 +16,12 @@ class Checkpoint:
         self,
         path: str = None,
         *,
-        loop_digit_start: int=DEFAULT_LOOP_DIGIT_START,
-        loop_digit_stop: int=DEFAULT_LOOP_DIGIT_STOP,
+        loop_digit_start: str=DEFAULT_LOOP_DIGIT_START,
+        loop_digit_stop: str=DEFAULT_LOOP_DIGIT_STOP,
         school_code: str=None,
         birth_state_code: str=None,
         current_living_state_code: str=None,
+        district_code: str=None,
         birth_date: str=None,
         loop_birth_date_start: str=DEFAULT_LOOP_BIRTH_DATE_START,
         loop_birth_date_stop: str=DEFAULT_LOOP_BIRTH_DATE_STOP,
@@ -35,8 +37,8 @@ class Checkpoint:
             if self.path.is_dir():
                 raise ValueError("Checkpoint path cannot be a directory.")
 
-            self.path.parent.mkdir(parents = True, exist_ok = True)
-            self.path.touch(exist_ok = True)
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.touch(exist_ok=True)
 
         self.data: dict = self.read()
         self._resumed: bool = False
@@ -48,8 +50,8 @@ class Checkpoint:
             self.set_if_absent(key, value)
 
     @property
-    def current_loop_digit(self) -> str | None:
-        value: str | None = self.get("current_loop_digit")
+    def current_loop_digit(self) -> Optional[str]:
+        value: Optional[str] = self.get("current_loop_digit")
         return value.zfill(4) if value != None else None
 
     @current_loop_digit.setter
@@ -57,16 +59,16 @@ class Checkpoint:
         self.set("current_loop_digit", value)
 
     @property
-    def current_loop_birth_state_code(self) -> int | None:
-        value: int | None = self.get("current_loop_birth_state_code")
-        return int(value) if value != None else None
+    def current_loop_birth_state_code(self) -> Optional[str]:
+        value: Optional[str] = self.get("current_loop_birth_state_code")
+        return value.zfill(2) if value != None else None
 
     @current_loop_birth_state_code.setter
-    def current_loop_birth_state_code(self, value: int) -> None:
-        self.set("current_loop_birth_state_code", int(value) if value != None else None)
+    def current_loop_birth_state_code(self, value: str) -> None:
+        self.set("current_loop_birth_state_code", value.zfill(2) if value != None else None)
 
     @property
-    def current_loop_birth_date(self) -> str:
+    def current_loop_birth_date(self) -> Optional[str]:
         return self.get("current_loop_birth_date")
 
     @current_loop_birth_date.setter
@@ -74,16 +76,17 @@ class Checkpoint:
         self.set("current_loop_birth_date", value)
 
     @property
-    def current_loop_current_living_state_code(self) -> str:
-        return self.get("current_loop_current_living_state_code", self.current_living_state_code)
+    def current_loop_current_living_state_code(self) -> Optional[str]:
+        value: Optional[str] = self.get("current_loop_current_living_state_code")
+        return value.zfill(2) if value != None else None
 
     @current_loop_current_living_state_code.setter
-    def current_loop_current_living_state_code(self, value: int) -> None:
-        self.set("current_loop_current_living_state_code", int(value) if value != None else None)
+    def current_loop_current_living_state_code(self, value: str) -> None:
+        self.set("current_loop_current_living_state_code", value.zfill(2) if value != None else None)
 
     @property
-    def current_loop_school_code(self) -> str:
-        return self.get("current_loop_school_code", self.school_code)
+    def current_loop_school_code(self) -> Optional[str]:
+        return self.get("current_loop_school_code")
 
     @current_loop_school_code.setter
     def current_loop_school_code(self, value: str) -> None:
@@ -98,19 +101,23 @@ class Checkpoint:
         return str(self.get("loop_digit_stop", DEFAULT_LOOP_DIGIT_STOP)).zfill(4)
 
     @property
-    def school_code(self) -> str:
+    def school_code(self) -> Optional[str]:
         return self.get("school_code", None)
 
     @property
-    def birth_state_code(self) -> str:
+    def birth_state_code(self) -> Optional[str]:
         return self.get("birth_state_code", None)
 
     @property
-    def current_living_state_code(self) -> str:
+    def current_living_state_code(self) -> Optional[str]:
         return self.get("current_living_state_code", None)
 
     @property
-    def birth_date(self) -> str:
+    def district_code(self) -> Optional[str]:
+        return self.get("district_code", None)
+
+    @property
+    def birth_date(self) -> Optional[str]:
         return self.get("birth_date", None)
 
     @property

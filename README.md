@@ -1,4 +1,5 @@
-# Only for Malaysian
+> [!IMPORTANT]
+> Only for Malaysian, foreigners are not able to use this program. Unless you use VPN to connect to Malaysia.
 
 [![LICENSE](https://img.shields.io/github/license/LynBean/MyStalker?label=LICENSE)](https://github.com/LynBean/MyStalker/blob/main/LICENSE)
 
@@ -6,22 +7,23 @@
 
 ##### _Use responsibly. For Educational Purposes Only_
 
-## Install
-
 ---
 
-**Only for Python version >= 3.10**
+> [!IMPORTANT]
+> Required Python 3.10 or above
 
 ### To install MyStalker
 
 ```bash
-pip install "git+https://github.com/LynBean/MyStalker@main"
+$ pip install "git+https://github.com/LynBean/MyStalker@main"
 ```
-*If you met installation error, or the program cannot be called after installation succeeded, you may try to reinstall the package but using administrator terminal*
+
+If you met installation error, or the program cannot be called after installation succeeded, you may try to reinstall the package but using administrator terminal
+
 ### To update MyStalker
 
 ```bash
-pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
+$ pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
 ```
 
 ### Alternatively, you can clone the project and run the following command to install
@@ -29,25 +31,46 @@ pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
 Make sure you cd into the _MyStalker-main_ folder before performing the command below.
 
 ```bash
-pip install .
+$ pip install .
 ```
-
-## Usage
 
 ---
 
 ### Simply Start
 
 ```bash
-mystalker
+$ mystalker
 ```
 
-### For faster searching, you can use the following options
+### Useful tips
 
-If result not good for you, you can increase the range
+> [!NOTE]
+> For getting the state code, district code and school code,
+> you may refer to the file "schools.csv" in the repository
 
 ```bash
-mystalker --loop-digit-start=0 --loop-digit-stop=3000
+# Range of digits to search
+$ mystalker --loop-digit-start=0 --loop-digit-stop=3000
+
+# Specify the state where the student was born
+$ mystalker --birth-state-code=08
+
+# Difference between `current-living-state-code` and `birth-state-code`
+# is that `current-living-state-code` is NOT fixed in NRIC generation,
+# but `birth-state-code` does.
+# So a single NRIC can go through multiple states to have more accurate
+# results.
+$ mystalker --birth-state-code=08 --current-living-state-code=12
+
+# You may also specify `district-code` or `school-code` to have a smaller
+# range in searching
+$ mystalker --district-code=J010 --school-code=JBA0001
+
+# NEW FEATURE CHECKPOINT!!
+# Use `-c` to autogenerate checkpoint file and autoresume during next run.
+# Or `-n` to specify the checkpoint filepath that you preffered.
+$ mystalker -c
+$ mystalker -n "C://User/user/mystalker.checkpoint"
 ```
 
 ### See where is the data stored
@@ -105,4 +128,5 @@ options:
   -f FILEPATH, --checkpoint-file FILEPATH
                         Specify the checkpoint filepath.
 
+  --nogui               Disable GUI.
 ```

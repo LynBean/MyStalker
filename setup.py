@@ -31,7 +31,6 @@ dependencies: List[str] = [
     "lxml",
     "pandas",
     "requests",
-    "tabulate",
     "urllib3",
 ]
 
