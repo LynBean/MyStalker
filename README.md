@@ -83,12 +83,11 @@ mystalker --where
 
 ---
 
-```
-Usage: mystalker [-h] [-v] [-w] [--database-renew-interval DAYS] [--loop-digit-start DIGIT] [--loop-digit-stop DIGIT] [--birth-state-code STATE_CODE]
-                 [--current-living-state-code STATE_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD]
-                 [--gender GENDER] [-c] [-f FILEPATH]
-
-options:
+```bash
+Usage: mystalker [-h] [-v] [-w] [--database-renew-interval DAYS] [--loop-digit-start DIGIT] [--loop-digit-stop DIGIT] [--birth-state-code STATE_CODE] [--current-living-state-code STATE_CODE]
+                 [--district-code DISTRICT_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD] [--gender GENDER] [-c]
+                 [-f FILEPATH] [--nogui]
+Options:
   -h, --help            show this help message and exit
 
   -v, --version         show program's version number and exit
@@ -109,6 +108,9 @@ options:
 
   --current-living-state-code STATE_CODE
                         Specify the state where the student is currently living.
+
+  --district-code DISTRICT_CODE
+                        Specify the district where the student is currently living.
 
   --school-code SCHOOL_CODE
                         Specify the school code.
