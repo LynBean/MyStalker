@@ -11,8 +11,11 @@ from typing import Union
 from ..students import Student
 
 
-class EmptyWindow:
-    def __enter__(self) -> "EmptyWindow":
+class FallbackWindow:
+    def __init__(self) -> None:
+        self._progression: float = 0.0
+
+    def __enter__(self) -> "FallbackWindow":
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -22,33 +25,39 @@ class EmptyWindow:
         pass
 
     def append_student(self, student: Student) -> None:
-        pass
+        print(f"{time.strftime('%H:%M:%S')} {str(student)}")
 
     def append_log(self, log: str) -> None:
-        pass
+        print(f"{time.strftime('%H:%M:%S')} {log}")
 
     def set_progression(self, progression: float) -> None:
-        pass
+        self._progression = progression
 
     def set_info(self, info: str) -> None:
-        pass
+        print(f"{time.strftime('%H:%M:%S')} {self._progression:.4f}% {info}")
 
     def set_error(self, error: Exception) -> None:
-        pass
+        print(f"{time.strftime('%H:%M:%S')} {error.__class__.__name__}: {error}")
 
 
-class Window(EmptyWindow):
-    LONG_LINES = 100 # Must be even number to avoid bugs
+class Window(FallbackWindow):
+    LONG_LINES = 300 # Must be even number to avoid bugs
 
     def __init__(self, nogui: bool=False) -> None:
         self._nogui: bool = nogui
 
+        # Some systems don't support curses (e.g. Docker)
+        try:
+            if not self._nogui:
+                self._stdscr: "curses._CursesWindow"
+                self._init_scr()
+        except Exception as e:
+            print(f"Falling back to nogui mode because of {e.__class__.__name__}: {e}")
+            self._nogui = True
+
         if self._nogui:
             super().__init__()
             return
-
-        self._stdscr: "curses._CursesWindow"
-        self._init_scr()
 
         if curses.has_colors():
             curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
@@ -92,7 +101,7 @@ class Window(EmptyWindow):
         self._logs_pad_showing_y: int = self.LONG_LINES - self.COOR_LOGS[2] + self.COOR_LOGS[0]
         Thread(target=self._catch_scroll, daemon=True).start()
 
-    def __enter__(self) -> Union["Window", EmptyWindow]:
+    def __enter__(self) -> Union["Window", FallbackWindow]:
         if self._nogui:
             return super().__enter__()
 
