@@ -48,7 +48,7 @@ setup(
     license = "GPL-3.0",
     packages = ["mystalker"],
     zip_safe = False,
-    python_requires = ">=3.5",
+    python_requires = ">=3.10",
     install_requires = dependencies,
     entry_points = {
         "console_scripts": [
