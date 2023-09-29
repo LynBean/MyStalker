@@ -6,6 +6,7 @@
 .vscode
 
 # Application generated data
+mystalker_data/
 *.checkpoint
 
 ### Python ###

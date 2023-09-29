@@ -22,7 +22,7 @@ CHECKPOINT_FILENAME: str = "mystalker.checkpoint"
 SCHOOLS_FILENAME: str = "schools.csv"
 STUDENTS_FILENAME: str = "students.csv"
 
-DATABASE_FILE_URL: str = "https://raw.githubusercontent.com/LynBean/MyStalker/main/database.csv"
+DATABASE_FILE_URL: str = "https://raw.githubusercontent.com/LynBean/MyStalker/main/schools.csv"
 GITHUB_URL: str = "https://github.com/LynBean/MyStalker"
 
 BASE_URL: str = "https://sapsnkra.moe.gov.my/"
