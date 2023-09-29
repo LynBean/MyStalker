@@ -126,7 +126,6 @@ class Window(EmptyWindow):
 
             asyncio.run(self._refresh_students())
             asyncio.run(self._refresh_logs())
-            curses.beep()
 
     @property
     def _slice(self) -> int:
