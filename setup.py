@@ -4,7 +4,7 @@ import re
 import os
 import sys
 from typing import List
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 if sys.version_info.major < 3 or sys.version_info.minor < 10:
@@ -46,7 +46,7 @@ setup(
     author_email = "kim.is.fighting@gmail.com",
     url = "https://github.com/LynBean/MyStalker",
     license = "GPL-3.0",
-    packages = ["mystalker"],
+    packages = find_packages(),
     zip_safe = False,
     python_requires = ">=3.10",
     install_requires = dependencies,
