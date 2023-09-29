@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+    app:
+        build: .
+        container_name: mystalker
+        restart: always
+
+        volumes:
+            - ./mystalker_data:/root/.local/share/Kim/MyStalker
+
+        # Enable checkpoint restore
+        command: [ "-f", "/root/.local/share/Kim/MyStalker/mystalker.checkpoint" ]
