@@ -27,6 +27,7 @@ def get_version():
 
 dependencies: List[str] = [
     "argparse",
+    "atomicwrites",
     "bs4",
     "lxml",
     "pandas",

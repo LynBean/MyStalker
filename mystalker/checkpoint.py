@@ -1,8 +1,11 @@
 
 import pickle
+import random
 from pathlib import Path
 from typing import Any
 from typing import Optional
+
+from atomicwrites import atomic_write
 
 from .constants import *
 
@@ -159,13 +162,20 @@ class Checkpoint:
         with open(self.path, "rb") as f:
             return pickle.load(f)
 
-    def save(self) -> None:
-        """Saves the checkpoint file with the current data.
+    def save(self, chance: float=0.1) -> None:
+        """Saves the checkpoint into a file.
+
+        Args:
+            chance (float, optional): The chance of saving the checkpoint.
+                Useful for reducing the number of writes to the disk.
+                Defaults to 0.1.
         """
         if not self.is_enabled:
             return
+        if random.randint(0, 100) > chance * 100:
+            return
 
-        with open(self.path, "wb") as f:
+        with atomic_write(self.path, overwrite=True, mode="wb") as f:
             pickle.dump(self.data, f)
 
     @property
