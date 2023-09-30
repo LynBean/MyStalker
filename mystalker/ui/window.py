@@ -11,6 +11,10 @@ from typing import Union
 from ..students import Student
 
 
+def get_current_time() -> str:
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
 class FallbackWindow:
     def __init__(self) -> None:
         self._progression: float = 0.0
@@ -25,19 +29,19 @@ class FallbackWindow:
         pass
 
     def append_student(self, student: Student) -> None:
-        print(f"{time.strftime('%H:%M:%S')} {str(student)}")
+        print(f"{get_current_time()} {str(student)}")
 
     def append_log(self, log: str) -> None:
-        print(f"{time.strftime('%H:%M:%S')} {log}")
+        print(f"{get_current_time()} {log}")
 
     def set_progression(self, progression: float) -> None:
         self._progression = progression
 
     def set_info(self, info: str) -> None:
-        print(f"{time.strftime('%H:%M:%S')} {self._progression:.4f}% {info}")
+        print(f"{get_current_time()} {self._progression:.4f}% {info}")
 
     def set_error(self, error: Exception) -> None:
-        print(f"{time.strftime('%H:%M:%S')} {error.__class__.__name__}: {error}")
+        print(f"{get_current_time()} {error.__class__.__name__}: {error}")
 
 
 class Window(FallbackWindow):
@@ -90,11 +94,11 @@ class Window(FallbackWindow):
 
         ### Calculate dynamic coordinates
         self.COOR_HEADER = (0, 0, 1, curses.COLS - 1)
-        self.COOR_PROGRESSION = (curses.LINES - 3, 0, curses.LINES - 3, 10)
-        self.COOR_INFO = (curses.LINES - 3, 10, curses.LINES - 3, curses.COLS - 1)
-        self.COOR_ERROR = (curses.LINES - 2, 0, curses.LINES - 2, curses.COLS - 1)
+        self.COOR_PROGRESSION = (curses.LINES - 2, 0, curses.LINES - 2, 10)
+        self.COOR_INFO = (curses.LINES - 2, 11, curses.LINES - 2, curses.COLS - 1)
+        self.COOR_ERROR = (curses.LINES - 1, 11, curses.LINES - 1, curses.COLS - 1)
         self.COOR_STUDENTS = (2, 0, self._slice, curses.COLS - 1)
-        self.COOR_LOGS = (self._slice + 1, 0, curses.LINES - 4, curses.COLS - 1)
+        self.COOR_LOGS = (self._slice + 1, 0, curses.LINES - 3, curses.COLS - 1)
 
         # User can input "W" and "S" to scroll the pads
         self._students_pad_showing_y: int = self.LONG_LINES - self.COOR_STUDENTS[2] + self.COOR_STUDENTS[0]
@@ -178,7 +182,7 @@ class Window(FallbackWindow):
 
         self._logs_pad.move(0, 0)
         self._logs_pad.deleteln()
-        self._logs_pad.addstr(self.LONG_LINES - 2, 0, f"{time.strftime('%H:%M:%S')} {log}\n")
+        self._logs_pad.addstr(self.LONG_LINES - 2, 0, f"{get_current_time()} {log}\n")
         asyncio.run(self._refresh_logs())
 
     def set_progression(self, progression: float) -> None:
@@ -194,7 +198,7 @@ class Window(FallbackWindow):
             return super().set_info(info)
 
         self._info_pad.clear()
-        self._info_pad.addstr(0, 0, f"{time.strftime('%H:%M:%S')} {info}")
+        self._info_pad.addstr(0, 0, f"{get_current_time()} {info}")
         self._info_pad.refresh(0, 0, *self.COOR_INFO)
 
     def set_error(self, error: Exception) -> None:
@@ -202,5 +206,5 @@ class Window(FallbackWindow):
             return super().set_error(error)
 
         self._error_pad.clear()
-        self._error_pad.addstr(0, 0, f"{time.strftime('%H:%M:%S')} {error.__class__.__name__}: {error}")
+        self._error_pad.addstr(0, 0, f"{get_current_time()} {error.__class__.__name__}: {error}")
         self._error_pad.refresh(0, 0, *self.COOR_ERROR)
