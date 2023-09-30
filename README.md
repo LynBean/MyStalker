@@ -1,54 +1,37 @@
-> [!IMPORTANT]
-> Only for Malaysian, foreigners are not able to use this program. Unless you use VPN to connect to Malaysia.
+> [!WARNING]
+> Only for Malaysian, foreigners are NOT able to use this program.
 
 [![LICENSE](https://img.shields.io/github/license/LynBean/MyStalker?label=LICENSE)](https://github.com/LynBean/MyStalker/blob/main/LICENSE)
 
 `mystalker` is a command-line application written in Python that can retrieve students details such as NRIC, Student Name and others.
 
-##### _Use responsibly. For Educational Purposes Only_
-
----
+_Use responsibly. For Educational Purposes Only_
 
 > [!IMPORTANT]
 > Required Python 3.10 or above
 
-### To install MyStalker
+## Installation
 
 ```bash
-$ pip install "git+https://github.com/LynBean/MyStalker@main"
+$ python -m pip install "git+https://github.com/LynBean/MyStalker@main"
+
+# OR for upgrading to latest version
+$ python -m pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
+
+# Alternatively, clone the project and install
+$ python -m pip install .
 ```
 
-If you met installation error, or the program cannot be called after installation succeeded, you may try to reinstall the package but using administrator terminal
-
-### To update MyStalker
-
-```bash
-$ pip install "git+https://github.com/LynBean/MyStalker@main" --upgrade
-```
-
-### Alternatively, you can clone the project and run the following command to install
-
-Make sure you cd into the _MyStalker-main_ folder before performing the command below.
-
-```bash
-$ pip install .
-```
-
----
-
-### Simply Start
-
-```bash
-$ mystalker
-```
-
-### Useful tips
+## Usage
 
 > [!NOTE]
 > For getting the state code, district code and school code,
-> you may refer to the file "schools.csv" in the repository
+> you may refer to the file [schools.csv](https://github.com/LynBean/MyStalker/blob/main/schools.csv) in the repository
 
 ```bash
+# Simply start without any arguments
+$ mystalker
+
 # Range of digits to search
 $ mystalker --loop-digit-start=0 --loop-digit-stop=3000
 
@@ -66,24 +49,22 @@ $ mystalker --birth-state-code=08 --current-living-state-code=12
 # range in searching
 $ mystalker --district-code=J010 --school-code=JBA0001
 
-# NEW FEATURE CHECKPOINT!!
 # Use `-c` to autogenerate checkpoint file and autoresume during next run.
 # Or `-n` to specify the checkpoint filepath that you preffered.
 $ mystalker -c
 $ mystalker -n "C://User/user/mystalker.checkpoint"
+
+# Find out where is all the output files located
+$ mystalker --where
 ```
 
-### See where is the data stored
+> [!NOTE]
+> You may noticed that the checkpoint resume mechanism is abit slow, simply enable nogui using the argument `--nogui` to efficient the program.
 
-```bash
-mystalker --where
+
+## Additional
+
 ```
-
-## Options
-
----
-
-```bash
 Usage: mystalker [-h] [-v] [-w] [--database-renew-interval DAYS] [--loop-digit-start DIGIT] [--loop-digit-stop DIGIT] [--birth-state-code STATE_CODE] [--current-living-state-code STATE_CODE]
                  [--district-code DISTRICT_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD] [--gender GENDER] [-c]
                  [-f FILEPATH] [--nogui]
