@@ -1,5 +1,6 @@
 > [!WARNING]
-> Only for Malaysian, foreigners are NOT able to use this program.
+> **Only for Malaysian,**
+> **Foreigners are NOT able to use this program.**
 
 [![LICENSE](https://img.shields.io/github/license/LynBean/MyStalker?label=LICENSE)](https://github.com/LynBean/MyStalker/blob/main/LICENSE)
 
@@ -25,8 +26,8 @@ $ python -m pip install .
 ## Usage
 
 > [!NOTE]
-> For getting the state code, district code and school code,
-> you may refer to the file [schools.csv](https://github.com/LynBean/MyStalker/blob/main/schools.csv) in the repository
+> Please refer to the file [schools.csv](https://github.com/LynBean/MyStalker/blob/main/schools.csv)
+> to get the `state code`, `district code`, `school code` details.
 
 ```bash
 # Simply start without any arguments
@@ -59,7 +60,8 @@ $ mystalker --where
 ```
 
 > [!NOTE]
-> You may noticed that the checkpoint resume mechanism is abit slow, simply enable nogui using the argument `--nogui` to efficient the program.
+> You may noticed that the Checkpoint Resume Mechanism is abit slow,
+> simply enable **nogui** using the argument `--nogui` to efficient the program.
 
 
 ## Additional
