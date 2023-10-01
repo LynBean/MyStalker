@@ -162,13 +162,13 @@ class Checkpoint:
         with open(self.path, "rb") as f:
             return pickle.load(f)
 
-    def save(self, chance: float=0.1) -> None:
+    def save(self, chance: float=0.01) -> None:
         """Saves the checkpoint into a file.
 
         Args:
             chance (float, optional): The chance of saving the checkpoint.
                 Useful for reducing the number of writes to the disk.
-                Defaults to 0.1.
+                Defaults to 0.01. (1%) (1 in 100)
         """
         if not self.is_enabled:
             return
