@@ -34,21 +34,21 @@ $ python -m pip install .
 $ mystalker
 
 # Range of digits to search
-$ mystalker --loop-digit-start=0 --loop-digit-stop=3000
+$ mystalker --loop-digit-start 0 --loop-digit-stop 3000
 
 # Specify the state where the student was born
-$ mystalker --birth-state-code=08
+$ mystalker --birth-state-code 08
 
 # Difference between `current-living-state-code` and `birth-state-code`
 # is that `current-living-state-code` is NOT fixed in NRIC generation,
 # but `birth-state-code` does.
 # So a single NRIC can go through multiple states to have more accurate
 # results.
-$ mystalker --birth-state-code=08 --current-living-state-code=12
+$ mystalker --birth-state-code 08 --current-living-state-code 12
 
 # You may also specify `district-code` or `school-code` to have a smaller
 # range in searching
-$ mystalker --district-code=J010 --school-code=JBA0001
+$ mystalker --district-code J010 --school-code JBA0001
 
 # Use `-c` to autogenerate checkpoint file and autoresume during next run.
 # Or `-n` to specify the checkpoint filepath that you preffered.
@@ -59,23 +59,20 @@ $ mystalker -n "C://User/user/mystalker.checkpoint"
 $ mystalker --where
 ```
 
-> [!NOTE]
-> You may noticed that the Checkpoint Resume Mechanism is abit slow,
-> simply enable **nogui** using the argument `--nogui` to efficient the program.
-
 
 ## Additional
 
-```
+```txt
 Usage: mystalker [-h] [-v] [-w] [--database-renew-interval DAYS] [--loop-digit-start DIGIT] [--loop-digit-stop DIGIT] [--birth-state-code STATE_CODE] [--current-living-state-code STATE_CODE]
-                 [--district-code DISTRICT_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD] [--gender GENDER] [-c]
-                 [-f FILEPATH] [--nogui]
+                 [--district-code DISTRICT_CODE] [--school-code SCHOOL_CODE] [--birth-date YYMMDD] [--loop-birth-date-start YYMMDD] [--loop-birth-date-stop YYMMDD] [--gender GENDER] [-c] [-f FILEPATH]
+                 [--nogui]
+
 Options:
   -h, --help            show this help message and exit
 
   -v, --version         show program's version number and exit
 
-  -w, --where           Specify the directory to store the database.
+  -w, --where           Print out the save directory.
 
   --database-renew-interval DAYS
                         Specify the database renew interval in days.

@@ -7,6 +7,7 @@ from datetime import timedelta
 from random import randint
 from typing import Callable
 from typing import Literal
+import sys
 from typing import Optional
 from typing import Union
 
@@ -374,6 +375,7 @@ def _main(
     current_progress: int = 0
     total_progress: int = len(birth_state_df) * len(birth_dates) * len(digits)
 
+    ui.set_info("Running checkpoint resuming mechanism.")
 
     for birth_state_code, birth_state_name in birth_state_df.values:
         for date in birth_dates:
@@ -381,13 +383,11 @@ def _main(
 
                 current_progress += 1
                 progress_percentage: float = round(current_progress / total_progress * 100, 4)
-                ui.set_progression(progress_percentage)
 
                 # ---------------------------------------------------------------------------------
                 #                    CHECKPOINT RESUMING MECHANISM
 
                 if not checkpoint.is_resumed():
-                    ui.set_info("Running checkpoint resuming mechanism.")
                     # Indicate first run
                     if (
                         checkpoint.current_loop_birth_state_code == None
@@ -413,6 +413,7 @@ def _main(
                         ui.append_log("Checkpoint resumed.")
 
                 if checkpoint.is_resumed():
+                    ui.set_progression(progress_percentage)
                     checkpoint.current_loop_birth_state_code = birth_state_code
                     checkpoint.current_loop_birth_date = date
                     checkpoint.current_loop_digit = digit
@@ -489,6 +490,7 @@ def _main(
 
                                 checkpoint.resumed = True
                                 ui.append_log("Checkpoint resumed.")
+                                ui.set_progression(progress_percentage)
 
                             if checkpoint.is_resumed():
                                 checkpoint.current_loop_current_living_state_code = living_state_code
@@ -534,18 +536,20 @@ def _main(
 def main():
     from . import __version__
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        epilog=f"For more information, please visit {GITHUB_URL}"
+    )
 
     parser.add_argument(
         "-v",
         "--version",
         action="version",
-        version=f"mystalker {__version__}"
+        version=f"MyStalker {__version__} | Python {sys.version} on {sys.platform}"
     )
     parser.add_argument(
         "-w",
         "--where",
-        help="Specify the directory to store the database.",
+        help="Print out the save directory.",
         action="store_true",
         default=False
     )
