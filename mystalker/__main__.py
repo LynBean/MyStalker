@@ -348,8 +348,8 @@ def _main(
             ] \
                 .tolist()[0]
 
-            current_living_state_df.iloc[index], current_living_state_df.iloc[head_index] = \
-                current_living_state_df.iloc[head_index].copy(), current_living_state_df.iloc[index].copy()
+            current_living_state_df.iloc[index], current_living_state_df.iloc[0] = \
+                current_living_state_df.iloc[0].copy(), current_living_state_df.iloc[index].copy()
 
 
         # Otherwise, we will just use the same settings as the birth states

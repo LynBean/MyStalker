@@ -13,4 +13,7 @@ ENV PYTHONFAULTHANDLER 1
 ENV PYTHONHASHSEED 0
 ENV PYTHONUNBUFFERED 1
 
-ENTRYPOINT [ "python3.10", "-u", "/mystalker/mystalker.py" ]
+ENV MYSTALKER_HOME /root/.local/share/Kim/MyStalker/
+WORKDIR $MYSTALKER_HOME
+
+ENTRYPOINT [ "mystalker" ]

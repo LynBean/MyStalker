@@ -49,14 +49,15 @@ class Window(FallbackWindow):
 
     def __init__(self, nogui: bool=False) -> None:
         self._nogui: bool = nogui
+        self._stdscr: "curses._CursesWindow"
 
         # Some systems don't support curses (e.g. Docker)
         try:
             if not self._nogui:
-                self._stdscr: "curses._CursesWindow"
                 self._init_scr()
         except Exception as e:
-            print(f"Falling back to nogui mode because of {e.__class__.__name__}: {e}")
+            print(f"Warning: {e.__class__.__name__}: {e}")
+            print("Warning: Fallback to nogui mode")
             self._nogui = True
 
         if self._nogui:
